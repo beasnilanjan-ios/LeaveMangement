@@ -1,26 +1,27 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { StatusBar } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { NavigationContainer } from '@react-navigation/native';
 
-import Splash from './Src/Screens/Splash';
-import Dashboard from './Src/Screens/Dashboard';
+import AppNavigator from './Src/Navigation/AppNavigator';
+
+// Polyfill for document object in React Native
+if (typeof document === 'undefined') {
+  global.document = {};
+}
 
 const App = () => {
-  const [isSplashVisible, setIsSplashVisible] = useState(true);
-
   return (
     <SafeAreaProvider>
-      <StatusBar
-        translucent={false}
-        barStyle="dark-content"
-        backgroundColor="#F2F4F7"
-      />
+      <NavigationContainer>
+        <StatusBar
+          translucent={false}
+          barStyle="dark-content"
+          backgroundColor="#F2F4F7"
+        />
 
-      {isSplashVisible ? (
-        <Splash onFinish={() => setIsSplashVisible(false)} />
-      ) : (
-        <Dashboard />
-      )}
+        <AppNavigator />
+      </NavigationContainer>
     </SafeAreaProvider>
   );
 };

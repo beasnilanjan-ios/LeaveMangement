@@ -1,18 +1,25 @@
-import React, { useEffect, useRef } from 'react';
+import React, {useEffect, useRef} from 'react';
 import {
   Animated,
   Easing,
-  Image,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
 
-interface SplashProps {
-  onFinish: () => void;
-}
+import {useNavigation} from '@react-navigation/native';
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 
-const Splash: React.FC<SplashProps> = ({ onFinish }) => {
+import type {RootStackParamList} from '../Navigation/AppNavigator';
+
+type SplashNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'Splash'
+>;
+
+const Splash = () => {
+  const navigation = useNavigation<SplashNavigationProp>();
+
   const logoScale = useRef(new Animated.Value(0.7)).current;
   const logoOpacity = useRef(new Animated.Value(0)).current;
   const textOpacity = useRef(new Animated.Value(0)).current;
@@ -26,6 +33,7 @@ const Splash: React.FC<SplashProps> = ({ onFinish }) => {
           duration: 900,
           useNativeDriver: true,
         }),
+
         Animated.timing(logoScale, {
           toValue: 1,
           duration: 900,
@@ -48,11 +56,11 @@ const Splash: React.FC<SplashProps> = ({ onFinish }) => {
     ]).start();
 
     const timer = setTimeout(() => {
-      onFinish();
+      navigation.replace('Login');
     }, 3000);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [navigation]);
 
   return (
     <View style={styles.container}>
@@ -62,14 +70,16 @@ const Splash: React.FC<SplashProps> = ({ onFinish }) => {
           styles.logo,
           {
             opacity: logoOpacity,
-            transform: [{ scale: logoScale }],
+            transform: [{scale: logoScale}],
           },
         ]}
         resizeMode="contain"
       />
 
-      <Animated.View style={{ opacity: textOpacity }}>
-        <Text style={styles.title}>Leave Management System</Text>
+      <Animated.View style={{opacity: textOpacity}}>
+        <Text style={styles.title}>
+          Leave Management System
+        </Text>
 
         <Text style={styles.subtitle}>
           Streamlining Employee Leave
@@ -82,9 +92,10 @@ const Splash: React.FC<SplashProps> = ({ onFinish }) => {
           {
             opacity: loadingOpacity,
           },
-        ]}
-      >
-        <Text style={styles.loading}>Loading...</Text>
+        ]}>
+        <Text style={styles.loading}>
+          Loading...
+        </Text>
       </Animated.View>
     </View>
   );
