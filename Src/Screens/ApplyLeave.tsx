@@ -1,38 +1,40 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   View,
   StyleSheet,
   Text,
 } from 'react-native';
 
+
 import TopBar from '../GlobalContainer/TopBar';
 import SideMenu from '../GlobalContainer/SideMenu';
 import BottomBar from '../GlobalContainer/BottomBar';
-import { FontFamily } from '../GlobalFont/GlobalFont';
+import {FontFamily} from '../GlobalFont/GlobalFont';
 
 
-const Dashboard = () => {
+
+const ApplyLeave = () => {
   const [menuVisible, setMenuVisible] = useState(false);
 
   return (
     <View style={styles.container}>
 
       <TopBar
-        title="Home"
+        title="Apply Leave"
         onMenuPress={() => setMenuVisible(prev => !prev)}
       />
 
       <View style={styles.content}>
         <Text style={styles.title}>
-          Dashboard
+          Apply Leave
         </Text>
       </View>
 
-      <BottomBar selected={0} />
+      <BottomBar selected={1} />
 
       <SideMenu
         visible={menuVisible}
-        selected="Home"
+        selected="Apply Leave"
         onClose={() => setMenuVisible(false)}
       />
 
@@ -40,10 +42,9 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default ApplyLeave;
 
 const styles = StyleSheet.create({
-
   container: {
     flex: 1,
     backgroundColor: '#F5F5F5',
@@ -60,5 +61,4 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.bold,
     color: '#111',
   },
-
 });

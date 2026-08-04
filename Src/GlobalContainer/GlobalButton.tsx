@@ -83,6 +83,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: Colors.white,
     fontSize: 17,
-    fontFamily:FontFamily.bold,
+    fontFamily:FontFamily.semiBold,
   },
 });

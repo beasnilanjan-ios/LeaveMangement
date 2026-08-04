@@ -11,6 +11,7 @@ import {useNavigation} from '@react-navigation/native';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 
 import type {RootStackParamList} from '../Navigation/AppNavigator';
+import { FontFamily } from '../GlobalFont/GlobalFont';
 
 type SplashNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -120,7 +121,7 @@ const styles = StyleSheet.create({
 
   title: {
     fontSize: 30,
-    fontWeight: '700',
+    fontFamily: FontFamily.bold,
     color: '#1A1A1A',
     textAlign: 'center',
   },

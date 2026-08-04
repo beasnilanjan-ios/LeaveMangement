@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
 
   label: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: FontFamily.semiBold,
     color: Colors.text,
     marginBottom: 7,
   },
@@ -162,7 +162,6 @@ const styles = StyleSheet.create({
   eyeButton: {
     paddingHorizontal: 5,
     paddingVertical: 8,
-    fontFamily: FontFamily.semiBold,
   },
 
   eyeText: {

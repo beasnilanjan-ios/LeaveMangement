@@ -4,8 +4,8 @@ import {
 
 
 export const FontFamily = {
-  regular: Platform.OS === 'ios' ? 'LeagueSpartan-Regular' : 'LeagueSpartan-Regular',
-  bold: Platform.OS === 'ios' ? 'LeagueSpartan-Bold' : 'LeagueSpartan-Bold',
-  medium: Platform.OS === 'ios' ? 'LeagueSpartan-Medium' : 'LeagueSpartan-Medium',
-  semiBold: Platform.OS === 'ios' ? 'LeagueSpartan-SemiBold' : 'LeagueSpartan-SemiBold',
+  regular: Platform.OS === 'ios' ? 'Poppins-Regular' : 'Poppins-Regular',
+  bold: Platform.OS === 'ios' ? 'Poppins-Bold' : 'Poppins-Bold',
+  medium: Platform.OS === 'ios' ? 'Poppins-Medium' : 'Poppins-Medium',
+  semiBold: Platform.OS === 'ios' ? 'Poppins-SemiBold' : 'Poppins-SemiBold',
 };

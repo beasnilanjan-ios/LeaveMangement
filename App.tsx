@@ -5,11 +5,6 @@ import { NavigationContainer } from '@react-navigation/native';
 
 import AppNavigator from './Src/Navigation/AppNavigator';
 
-// Polyfill for document object in React Native
-if (typeof document === 'undefined') {
-  global.document = {};
-}
-
 const App = () => {
   return (
     <SafeAreaProvider>

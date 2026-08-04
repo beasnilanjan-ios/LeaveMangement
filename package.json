@@ -5,6 +5,8 @@
   "scripts": {
     "android": "react-native run-android",
     "ios": "react-native run-ios",
+    "link:fonts": "npx react-native-asset",
+    "postinstall": "npx react-native-asset",
     "lint": "eslint .",
     "start": "react-native start",
     "test": "jest"
@@ -36,6 +38,7 @@
     "eslint": "^8.19.0",
     "jest": "^29.6.3",
     "prettier": "2.8.8",
+    "react-native-asset": "^2.3.0",
     "react-test-renderer": "19.2.3",
     "typescript": "^5.8.3"
   },

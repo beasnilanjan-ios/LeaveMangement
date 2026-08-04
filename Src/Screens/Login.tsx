@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
 
   title: {
     fontSize: 27,
-    fontFamily: FontFamily.bold,
+    fontFamily: FontFamily.semiBold,
     color: Colors.primary,
     marginTop: 5,
   },
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 15,
     color: Colors.textSecondary,
-    fontFamily: FontFamily.semiBold,
+    fontFamily: FontFamily.medium,
     marginTop: 9,
     marginBottom: 42,
   },
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
   signInText: {
     color: Colors.white,
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: FontFamily.semiBold,
   },
 
   /* -------------------------
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
   forgotPassword: {
     color: Colors.primary,
     fontSize: 15,
-    fontFamily: FontFamily.bold,
+    fontFamily: FontFamily.semiBold,
     marginTop: 30,
   },
 });
