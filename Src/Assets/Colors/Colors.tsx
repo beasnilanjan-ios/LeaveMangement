@@ -23,6 +23,10 @@ const Colors = {
   rejectedLight: '#FCEAEC',
 
   border: '#E5E7EB',
+
+  // Leave summary
+  balance: '#16A34A',
+  earlyLeave: '#E31B2D',
 };
 
 export default Colors;
