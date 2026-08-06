@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   TextInput,
   Platform,
+  Image,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
@@ -55,6 +56,9 @@ const ApplyLeave = () => {
 
   // Reason
   const [reason, setReason] = useState('');
+
+
+  const [selectedAuthorities, setSelectedAuthorities] = useState<number[]>([]);
 
   /*
    * Check whether From Date and To Date
@@ -163,6 +167,83 @@ const ApplyLeave = () => {
     setToDate(selectedDate);
   };
 
+    /*
+   * Holidays list
+   */
+  const holidays = [
+    {
+      date: '2026-01-26',
+      name: 'Republic Day',
+      restricted: false,
+    },
+    {
+      date: '2026-03-08',
+      name: 'Holi',
+      restricted: false,
+    },
+    {
+      date: '2026-08-11',
+      name: 'Christmas',
+      restricted: false,
+    },
+    {
+      date: '2026-08-15',
+      name: 'Independence Day',
+      restricted: false,
+    },
+    {
+      date: '2026-11-14',
+      name: 'Diwali',
+      restricted: false,
+    },
+    {
+      date: '2026-12-25',
+      name: 'Christmas',
+      restricted: false,
+    },
+    {
+      date: '2026-09-17',
+      name: 'Vishwakarma Puja',
+      restricted: true,
+    },
+  ];
+
+  const authorities = [
+    {
+      id: 1,
+      name: 'Subrata Mukherjee',
+      designation: 'Project Manager',
+    },
+    {
+      id: 2,
+      name: 'Manas Mukherjee',
+      designation: 'Project Manager',
+    },
+    {
+      id: 3,
+      name: 'Ujjwal Sinha',
+      designation: 'Project Manager',
+    },
+     {
+      id: 4,
+      name: 'Pradip Ghosal',
+      designation: 'Project Manager',
+    },
+  ];
+
+  /*
+   * Checkbox
+   */
+  const toggleAuthority = (id: number) => {
+    setSelectedAuthorities(prev => {
+      if (prev.includes(id)) {
+        return prev.filter(item => item !== id);
+      }
+
+      return [...prev, id];
+    });
+  };
+
   /*
    * Apply Leave
    */
@@ -180,11 +261,70 @@ const ApplyLeave = () => {
       leaveRequest,
     );
 
+  
     /*
      * Later:
      * API call can be added here.
      */
   };
+
+
+   /*
+   * Calculate Net Leave Days
+   */
+    const calculateNetLeaveDays = () => {
+        let count = 0;
+
+        const current = new Date(fromDate);
+
+        while (current <= toDate) {
+          const day = current.getDay(); // 0 Sunday, 6 Saturday
+
+          // Skip Saturday & Sunday
+          if (day === 0 || day === 6) {
+            current.setDate(current.getDate() + 1);
+            continue;
+          }
+
+          const formattedDate = current
+            .toISOString()
+            .split('T')[0];
+
+          const holiday = holidays.find(
+            item => item.date === formattedDate,
+          );
+
+          if (holiday) {
+            // Restricted holiday
+            if (holiday.restricted) {
+              if (restrictedHoliday) {
+                current.setDate(current.getDate() + 1);
+                continue;
+              }
+            } else {
+              // Normal Holiday
+              current.setDate(current.getDate() + 1);
+              continue;
+            }
+          }
+
+          count++;
+
+          current.setDate(current.getDate() + 1);
+        }
+
+        if (isSameDate) {
+          if (duration === 'HALF_DAY') {
+            return 0.5;
+          }
+
+          if (duration === 'QUARTERLY') {
+            return 0.25;
+          }
+        }
+
+        return count;
+      };
 
   return (
     <View style={styles.container}>
@@ -261,9 +401,15 @@ const ApplyLeave = () => {
           activeOpacity={0.7}
           onPress={() => setShowFromPicker(true)}>
 
-          <Text style={styles.calendarIcon}>
+          {/* <Text style={styles.calendarIcon}>
             📅
-          </Text>
+          </Text> */}
+
+          <Image
+            source={require('../Assets/Icons/calendar.png')}
+            style={styles.calendarIcon}
+            resizeMode="contain"
+          />
 
           <Text style={styles.dateText}>
             {formatDate(fromDate)}
@@ -301,9 +447,15 @@ const ApplyLeave = () => {
           activeOpacity={0.7}
           onPress={() => setShowToPicker(true)}>
 
-          <Text style={styles.calendarIcon}>
+          {/* <Text style={styles.calendarIcon}>
             📅
-          </Text>
+          </Text> */}
+
+        <Image
+            source={require('../Assets/Icons/calendar.png')}
+            style={styles.calendarIcon}
+            resizeMode="contain"
+          />
 
           <Text style={styles.dateText}>
             {formatDate(toDate)}
@@ -445,6 +597,77 @@ const ApplyLeave = () => {
             </TouchableOpacity>
           )}
 
+        </View>
+
+
+        {/* ==============================
+                  Duration
+              ============================== */}
+
+       <Text style={styles.label}>
+        Net Leave Days
+      </Text>
+
+      <View style={styles.netLeaveCard}>
+        <Text style={styles.netLeaveValue}>
+          {calculateNetLeaveDays()}
+        </Text>
+
+        <Text style={styles.netLeaveLabel}>
+          {calculateNetLeaveDays() === 1
+            ? 'Day'
+            : 'Days'}
+        </Text>
+      </View>
+
+        {/* ==============================
+            Higher autority
+        ============================== */}
+
+        <Text style={styles.label}>
+          Approval Authority
+        </Text>
+
+        <View style={styles.authorityCard}>
+          {authorities.map(item => {
+            const checked = selectedAuthorities.includes(item.id);
+
+            return (
+              <TouchableOpacity
+                key={item.id}
+                style={[
+                  styles.authorityRow,
+                  checked && styles.authorityRowSelected,
+                ]}
+                activeOpacity={0.7}
+                onPress={() => toggleAuthority(item.id)}
+              >
+                {/* Checkbox */}
+                <View
+                  style={[
+                    styles.checkbox,
+                    checked && styles.checkboxSelected,
+                  ]}
+                >
+                  {checked && (
+                    <Text style={styles.checkMark}>
+                      ✓
+                    </Text>
+                  )}
+                </View>
+
+                <View style={{flex: 1}}>
+                  <Text style={styles.authorityName}>
+                    {item.name}
+                  </Text>
+
+                  <Text style={styles.authorityDesignation}>
+                    {item.designation}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
         {/* ==============================
@@ -637,9 +860,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
 
+  // calendarIcon: {
+  //   fontSize: 18,
+  //   marginRight: 10,
+  // },
+
   calendarIcon: {
-    fontSize: 18,
+    width: 20,
+    height: 20,
     marginRight: 10,
+    tintColor: Colors.primary,
   },
 
   dateText: {
@@ -647,12 +877,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: FontFamily.regular,
     color: Colors.text,
+    includeFontPadding: false, // Android
+    textAlignVertical: 'center',
   },
 
   arrow: {
     fontSize: 27,
     color: Colors.textSecondary,
     fontFamily: FontFamily.regular,
+    includeFontPadding: false, // Android
+    textAlignVertical: 'center',
   },
 
   /* ==============================
@@ -849,5 +1083,175 @@ const styles = StyleSheet.create({
     fontSize: 16,
 
     fontFamily: FontFamily.semiBold,
+  },
+
+  /* ==============================
+   Leave Summary
+============================== */
+
+summaryCard: {
+  backgroundColor: Colors.white,
+
+  borderRadius: 12,
+
+  borderWidth: 1,
+  borderColor: Colors.border,
+
+  padding: 16,
+
+  marginTop: 8,
+},
+
+summaryRow: {
+  flexDirection: 'row',
+
+  justifyContent: 'space-between',
+
+  alignItems: 'center',
+
+  paddingVertical: 7,
+},
+
+summaryLabel: {
+  fontSize: 14,
+
+  fontFamily: FontFamily.medium,
+
+  color: Colors.textSecondary,
+},
+
+summaryValue: {
+  fontSize: 15,
+
+  fontFamily: FontFamily.semiBold,
+
+  color: Colors.text,
+},
+
+summaryNegative: {
+  fontSize: 15,
+
+  fontFamily: FontFamily.semiBold,
+
+  color: Colors.accent,
+},
+
+summaryDivider: {
+  height: 1,
+
+  backgroundColor: Colors.border,
+
+  marginVertical: 10,
+},
+
+netLabel: {
+  fontSize: 15,
+
+  fontFamily: FontFamily.bold,
+
+  color: Colors.text,
+},
+
+netValue: {
+  fontSize: 17,
+
+  fontFamily: FontFamily.bold,
+
+  color: Colors.success,
+},
+
+netLeaveCard: {
+  marginTop: 10,
+
+  backgroundColor: Colors.primaryLight,
+
+  borderRadius: 12,
+
+  borderWidth: 1,
+  borderColor: Colors.primary,
+
+  alignItems: 'center',
+
+  paddingVertical: 20,
+
+  marginBottom: 18,
+},
+
+netLeaveValue: {
+  fontSize: 34,
+
+  fontFamily: FontFamily.bold,
+
+  color: Colors.primary,
+},
+
+netLeaveLabel: {
+  marginTop: 4,
+
+  fontSize: 15,
+
+  fontFamily: FontFamily.medium,
+
+  color: Colors.textSecondary,
+},
+
+/* ==============================
+   Approval Authority
+============================== */
+
+  authorityCard: {
+    backgroundColor: Colors.white,
+
+    borderRadius: 12,
+
+    borderWidth: 1,
+    borderColor: Colors.border,
+
+    marginTop: 8,
+
+    overflow: 'hidden',
+  },
+
+  authorityRow: {
+    flexDirection: 'row',
+
+    alignItems: 'center',
+
+    paddingHorizontal: 16,
+
+    paddingVertical: 15,
+
+    borderBottomWidth: 1,
+
+    borderBottomColor: '#F2F2F2',
+  },
+
+  authorityName: {
+    fontSize: 15,
+
+    fontFamily: FontFamily.semiBold,
+
+    color: Colors.text,
+  },
+
+  authorityDesignation: {
+    marginTop: 3,
+
+    fontSize: 13,
+
+    fontFamily: FontFamily.regular,
+
+    color: Colors.textSecondary,
+  },
+
+  authorityRowSelected: {
+  backgroundColor: Colors.primaryLight,
+},
+
+
+checkMark: {
+    color: Colors.white,
+    fontSize: 14,
+    fontFamily: FontFamily.bold,
   },
 });
