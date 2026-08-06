@@ -54,6 +54,10 @@ const ApplyLeave = () => {
   const [restrictedHoliday, setRestrictedHoliday] =
     useState(false);
 
+  // Restricted Holiday between from and todate
+  const [restrictedHolidayTwoDate, setRestrictedHolidayTwoDate] =
+    useState(false);
+
   // Reason
   const [reason, setReason] = useState('');
 
@@ -183,7 +187,7 @@ const ApplyLeave = () => {
     },
     {
       date: '2026-08-11',
-      name: 'Christmas',
+      name: 'Test',
       restricted: false,
     },
     {
@@ -268,6 +272,41 @@ const ApplyLeave = () => {
      */
   };
 
+   /*
+     * Check if there is any restricted holiday between From Date and To Date
+     */
+  const hasRestrictedHoliday = () => {
+      const current = new Date(fromDate);
+
+      while (current <= toDate) {
+        const formattedDate = current
+          .toISOString()
+          .split('T')[0];
+
+        const holiday = holidays.find(
+          item =>
+            item.date === formattedDate &&
+            item.restricted,
+        );
+
+        if (holiday) {
+          setRestrictedHolidayTwoDate(true);
+          return true;
+        }
+
+        current.setDate(current.getDate() + 1);
+      }
+
+      return false;
+    };
+
+    useEffect(() => {
+      if (!hasRestrictedHoliday()) {
+        setRestrictedHolidayTwoDate(false);
+        setRestrictedHoliday(false);
+      }
+    }, [fromDate, toDate]);
+
 
    /*
    * Calculate Net Leave Days
@@ -319,7 +358,7 @@ const ApplyLeave = () => {
           }
 
           if (duration === 'QUARTERLY') {
-            return 0.25;
+            return 0;
           }
         }
 
@@ -674,40 +713,43 @@ const ApplyLeave = () => {
             Restricted Holiday
         ============================== */}
 
-        <TouchableOpacity
-          style={[
-            styles.checkboxRow,
-            restrictedHoliday &&
-              styles.checkboxRowSelected,
-          ]}
-          activeOpacity={0.7}
-          onPress={() =>
-            setRestrictedHoliday(
-              !restrictedHoliday,
-            )
-          }>
+        {restrictedHolidayTwoDate && (
+          <>
+            <TouchableOpacity
+              style={[
+                styles.checkboxRow,
+                restrictedHoliday &&
+                  styles.checkboxRowSelected,
+              ]}
+              activeOpacity={0.7}
+              onPress={() =>
+                setRestrictedHoliday(
+                  !restrictedHoliday,
+                )
+              }>
 
-          <View
-            style={[
-              styles.checkbox,
-              restrictedHoliday &&
-                styles.checkboxSelected,
-            ]}>
+              <View
+                style={[
+                  styles.checkbox,
+                  restrictedHoliday &&
+                    styles.checkboxSelected,
+                ]}>
 
-            {restrictedHoliday && (
-              <Text style={styles.checkmark}>
-                ✓
+                {restrictedHoliday && (
+                  <Text style={styles.checkmark}>
+                    ✓
+                  </Text>
+                )}
+
+              </View>
+
+              <Text style={styles.checkboxLabel}>
+                Want to add restricted holiday
               </Text>
-            )}
 
-          </View>
-
-          <Text style={styles.checkboxLabel}>
-            Want to add restricted holiday
-          </Text>
-
-        </TouchableOpacity>
-
+            </TouchableOpacity>
+          </>
+        )}
         {/* ==============================
             Reason
         ============================== */}
