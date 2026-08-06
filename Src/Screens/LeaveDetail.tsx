@@ -9,6 +9,7 @@ import {
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../Navigation/AppNavigator';
+import { FlatList } from 'react-native';
 
 import TopBar from '../GlobalContainer/TopBar';
 import SideMenu from '../GlobalContainer/SideMenu';
@@ -61,6 +62,43 @@ const getStatusStyle = (status: string) => {
         color: Colors.textSecondary,
       };
   }
+};
+
+const leaveDetail = {
+  id: 'LV-20260811-001',
+  leaveType: 'Casual Leave',
+  applicationType: 'Full Day',
+  status: 'Pending',
+  fromDate: '2026-08-11',
+  toDate: '2026-08-13',
+  appliedOn: '2026-08-08',
+  totalDays: 3,
+  reason:
+    'Going to my hometown due to a family function. Kindly approve my leave.',
+
+  approvals: [
+    {
+      id: 1,
+      name: 'Subrata Mukherjee',
+      designation: 'Project Manager',
+      status: 'Approved',
+      date: '08 Aug 2026',
+    },
+    {
+      id: 2,
+      name: 'Manas Mukherjee',
+      designation: 'Delivery Manager',
+      status: 'Approved',
+      date: '08 Aug 2026',
+    },
+    {
+      id: 3,
+      name: 'Ujjwal Sinha',
+      designation: 'Technical Lead',
+      status: 'Pending',
+      date: '',
+    },
+  ],
 };
 
 const LeaveDetail = () => {
@@ -129,30 +167,50 @@ const LeaveDetail = () => {
 
           <View style={styles.infoCard}>
 
+            <View style={styles.card}>
               <InfoRow
-                  label="Leave Type"
-                  value={type}
+                label="Leave Type"
+                value={leaveDetail.leaveType}
               />
 
               <InfoRow
-                  label="Application"
-                  value={applicationType}
+                label="Application"
+                value={leaveDetail.applicationType}
               />
 
               <InfoRow
-                  label="From"
-                  value={formatDate(fromDate)}
+                label="Status"
+                value={leaveDetail.status}
+                valueColor={Colors.pending}
               />
 
               <InfoRow
-                  label="To"
-                  value={formatDate(toDate)}
+                label="From Date"
+                value={formatDate(leaveDetail.fromDate)}
               />
 
               <InfoRow
-                  label="Net Leave"
-                  value="4 Days"
+                label="To Date"
+                value={formatDate(leaveDetail.toDate)}
               />
+
+              <InfoRow
+                label="Applied On"
+                value={formatDate(leaveDetail.appliedOn)}
+              />
+
+              <InfoRow
+                label="Total Days"
+                value={`${leaveDetail.totalDays} Days`}
+                valueColor={Colors.primary}
+              />
+
+              <InfoRow
+                label="Reason"
+                value={leaveDetail.reason}
+                multiline
+              />
+            </View>
 
           </View>
 
@@ -190,24 +248,29 @@ const LeaveDetail = () => {
 
           <View style={styles.infoCard}>
 
-              <ApprovalItem
-                  approved
-                  name="Subrata Mukherjee"
-                  designation="Project Manager"
-                  date="05 Aug 2026 11:10 AM"
-              />
+             <View style={styles.card}>
 
-              <ApprovalItem
-                  pending
-                  name="Manas Mukherjee"
-                  designation="Delivery Manager"
-              />
+                <Text style={styles.sectionTitle}>
+                    Approval Timeline
+                </Text>
 
-              <ApprovalItem
-                  pending
-                  name="Ujjwal Sinha"
-                  designation="Regional Manager"
-              />
+                <FlatList
+                    data={leaveDetail.approvals}
+                    keyExtractor={(item) => item.id.toString()}
+                    scrollEnabled={false}
+                    renderItem={({ item }) => (
+                        <ApprovalItem
+                            name={item.name}
+                            designation={item.designation}
+                            approved={item.status === 'Approved'}
+                            pending={item.status === 'Pending'}
+                            rejected={item.status === 'Rejected'}
+                            date={item.date}
+                        />
+                    )}
+                />
+
+            </View>
 
           </View>
 
