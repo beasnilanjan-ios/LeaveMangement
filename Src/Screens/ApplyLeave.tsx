@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -8,6 +8,7 @@ import {
   TextInput,
   Platform,
   Image,
+  Alert,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
@@ -15,13 +16,11 @@ import TopBar from '../GlobalContainer/TopBar';
 import SideMenu from '../GlobalContainer/SideMenu';
 import BottomBar from '../GlobalContainer/BottomBar';
 
-import {FontFamily} from '../GlobalFont/GlobalFont';
+import { FontFamily } from '../GlobalFont/GlobalFont';
 import Colors from '../Assets/Colors/Colors';
+import Calendar from 'react-native-calendars/src/calendar';
 
-type LeaveDuration =
-  | 'FULL_DAY'
-  | 'HALF_DAY'
-  | 'QUARTERLY';
+type LeaveDuration = 'FULL_DAY' | 'HALF_DAY' | 'QUARTERLY';
 
 /*
  * Static data
@@ -36,142 +35,7 @@ const leaveBalance = {
 };
 
 const ApplyLeave = () => {
-  const [menuVisible, setMenuVisible] = useState(false);
-
-  // Dates
-  const [fromDate, setFromDate] = useState(new Date());
-  const [toDate, setToDate] = useState(new Date());
-
-  // Date picker visibility
-  const [showFromPicker, setShowFromPicker] = useState(false);
-  const [showToPicker, setShowToPicker] = useState(false);
-
-  // Duration
-  const [duration, setDuration] =
-    useState<LeaveDuration>('FULL_DAY');
-
-  // Restricted Holiday
-  const [restrictedHoliday, setRestrictedHoliday] =
-    useState(false);
-
-  // Restricted Holiday between from and todate
-  const [restrictedHolidayTwoDate, setRestrictedHolidayTwoDate] =
-    useState(false);
-
-  // Reason
-  const [reason, setReason] = useState('');
-
-
-  const [selectedAuthorities, setSelectedAuthorities] = useState<number[]>([]);
-
   /*
-   * Check whether From Date and To Date
-   * are the same day.
-   */
-  const isSameDate =
-    fromDate.toDateString() === toDate.toDateString();
-
-  /*
-   * Half Day and Quarterly Leave are
-   * available only when:
-   *
-   * 1. From Date = To Date
-   * 2. Balance Leave > 0
-   */
-  const canUsePartialLeave =
-    isSameDate &&
-    leaveBalance.balanceLeave > 0;
-
-  /*
-   * If user selected Half Day / Quarterly
-   * and then changes the date to multiple
-   * days, automatically switch to Full Day.
-   */
-  useEffect(() => {
-    if (
-      !canUsePartialLeave &&
-      duration !== 'FULL_DAY'
-    ) {
-      setDuration('FULL_DAY');
-    }
-  }, [canUsePartialLeave, duration]);
-
-  /*
-   * Format date
-   */
-  const formatDate = (date: Date) => {
-    const day = String(date.getDate()).padStart(2, '0');
-
-    const monthNames = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-
-    const month = monthNames[date.getMonth()];
-    const year = date.getFullYear();
-
-    return `${day} ${month} ${year}`;
-  };
-
-  /*
-   * From date change
-   */
-  const handleFromDateChange = (
-    event: any,
-    selectedDate?: Date,
-  ) => {
-    setShowFromPicker(false);
-
-    if (!selectedDate) {
-      return;
-    }
-
-    setFromDate(selectedDate);
-
-    /*
-     * If selected From Date is after
-     * current To Date, update To Date.
-     */
-    if (selectedDate > toDate) {
-      setToDate(selectedDate);
-    }
-  };
-
-  /*
-   * To date change
-   */
-  const handleToDateChange = (
-    event: any,
-    selectedDate?: Date,
-  ) => {
-    setShowToPicker(false);
-
-    if (!selectedDate) {
-      return;
-    }
-
-    /*
-     * Don't allow To Date before From Date.
-     */
-    if (selectedDate < fromDate) {
-      setToDate(fromDate);
-      return;
-    }
-
-    setToDate(selectedDate);
-  };
-
-    /*
    * Holidays list
    */
   const holidays = [
@@ -211,6 +75,380 @@ const ApplyLeave = () => {
       restricted: true,
     },
   ];
+  const [menuVisible, setMenuVisible] = useState(false);
+
+  // Dates
+  const [fromDate, setFromDate] = useState(new Date());
+  const [toDate, setToDate] = useState(new Date());
+
+  // Date picker visibility
+  const [showFromPicker, setShowFromPicker] = useState(false);
+  const [showToPicker, setShowToPicker] = useState(false);
+
+  // Duration
+  const [duration, setDuration] = useState<LeaveDuration>('FULL_DAY');
+
+  // Restricted Holiday
+  const [restrictedHoliday, setRestrictedHoliday] = useState(false);
+
+  // Restricted Holiday between from and todate
+  const [restrictedHolidayTwoDate, setRestrictedHolidayTwoDate] =
+    useState(false);
+
+  // Reason
+  const [reason, setReason] = useState('');
+
+  const [selectedAuthorities, setSelectedAuthorities] = useState<number[]>([]);
+
+  /*
+   * Check whether From Date and To Date
+   * are the same day.
+   */
+  const isSameDate = fromDate.toDateString() === toDate.toDateString();
+
+  /*
+   * Half Day and Quarterly Leave are
+   * available only when:
+   *
+   * 1. From Date = To Date
+   * 2. Balance Leave > 0
+   */
+  const canUsePartialLeave = isSameDate && leaveBalance.balanceLeave > 0;
+
+  /*
+   * If user selected Half Day / Quarterly
+   * and then changes the date to multiple
+   * days, automatically switch to Full Day.
+   */
+  useEffect(() => {
+    if (!canUsePartialLeave && duration !== 'FULL_DAY') {
+      setDuration('FULL_DAY');
+    }
+  }, [canUsePartialLeave, duration]);
+
+  /*
+   * Format date
+   */
+  const formatDate = (date: Date) => {
+    const day = String(date.getDate()).padStart(2, '0');
+
+    const monthNames = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+
+    const month = monthNames[date.getMonth()];
+    const year = date.getFullYear();
+
+    return `${day} ${month} ${year}`;
+  };
+
+  const formatDateForCompare = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  };
+
+  const isHoliday = (date: Date) => {
+    return holidays.some(
+      item => item.date === formatDateForCompare(date) && !item.restricted,
+    );
+  };
+
+  const isWeekend = (date: Date) => {
+    const day = date.getDay();
+    return day === 0 || day === 6;
+  };
+
+  const getMarkedDates = (restrictedEnabled: boolean) => {
+    const marked: any = {};
+
+    const years = holidays.map(item => Number(item.date.substring(0, 4)));
+
+    const startYear = Math.min(...years);
+    const endYear = Math.max(...years);
+
+    const current = new Date(startYear, 0, 1);
+    const last = new Date(endYear, 11, 31);
+
+    // Today's date (remove time)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    while (current <= last) {
+      const dateKey = formatDateForCompare(current);
+
+      // Disable previous dates
+      if (current < today) {
+        marked[dateKey] = {
+          disabled: true,
+          disableTouchEvent: true,
+          customStyles: {
+            container: {
+              backgroundColor: '#F5F5F5',
+            },
+            text: {
+              color: '#C0C0C0',
+            },
+          },
+        };
+      }
+
+      // Disable weekends
+      else if (isWeekend(current)) {
+        marked[dateKey] = {
+          disabled: true,
+          disableTouchEvent: true,
+          customStyles: {
+            container: {
+              backgroundColor: '#F5F5F5',
+            },
+            text: {
+              color: '#BDBDBD',
+            },
+          },
+        };
+      }
+
+      current.setDate(current.getDate() + 1);
+    }
+
+    // Holidays
+    holidays.forEach(item => {
+      const existing = marked[item.date] || {};
+
+      if (!item.restricted) {
+        // Public Holiday (Disabled)
+        marked[item.date] = {
+          ...existing,
+          disabled: true,
+          disableTouchEvent: true,
+          customStyles: {
+            container: {
+              backgroundColor: '#FCEAEC',
+            },
+            text: {
+              color: '#E31B2D',
+              fontWeight: '700',
+            },
+          },
+        };
+      } else {
+        // Restricted Holiday (Enabled)
+        marked[item.date] = {
+          ...existing,
+          disabled: false,
+          disableTouchEvent: false,
+          customStyles: {
+            container: {
+              backgroundColor: '#FFF7E6',
+            },
+            text: {
+              color: '#F59E0B',
+              fontWeight: '700',
+            },
+          },
+        };
+      }
+    });
+
+    return marked;
+  };
+
+  const getToMarkedDates = (
+  fromDate: Date,
+  restrictedEnabled: boolean,
+) => {
+  const marked: any = {};
+
+  const years = holidays.map(item =>
+    Number(item.date.substring(0, 4)),
+  );
+
+  const startYear = Math.min(...years);
+  const endYear = Math.max(...years);
+
+  const current = new Date(startYear, 0, 1);
+  const last = new Date(endYear, 11, 31);
+
+  // Remove time part
+  const minDate = new Date(fromDate);
+  minDate.setHours(0, 0, 0, 0);
+
+  while (current <= last) {
+    const dateKey = formatDateForCompare(current);
+
+    // Disable dates before From Date
+    if (current < minDate) {
+      marked[dateKey] = {
+        disabled: true,
+        disableTouchEvent: true,
+        customStyles: {
+          container: {
+            backgroundColor: '#F5F5F5',
+          },
+          text: {
+            color: '#C0C0C0',
+          },
+        },
+      };
+    }
+
+    // Disable weekends
+    else if (isWeekend(current)) {
+      marked[dateKey] = {
+        disabled: true,
+        disableTouchEvent: true,
+        customStyles: {
+          container: {
+            backgroundColor: '#F5F5F5',
+          },
+          text: {
+            color: '#BDBDBD',
+          },
+        },
+      };
+    }
+
+    current.setDate(current.getDate() + 1);
+  }
+
+  // Holidays
+  holidays.forEach(item => {
+    const existing = marked[item.date] || {};
+
+    if (!item.restricted) {
+      marked[item.date] = {
+        ...existing,
+        disabled: true,
+        disableTouchEvent: true,
+        customStyles: {
+          container: {
+            backgroundColor: '#FCEAEC',
+          },
+          text: {
+            color: '#E31B2D',
+            fontWeight: '700',
+          },
+        },
+      };
+    } else {
+      marked[item.date] = {
+        ...existing,
+        disabled: false,
+        disableTouchEvent: false,
+        customStyles: {
+          container: {
+            backgroundColor: '#FFF7E6',
+          },
+          text: {
+            color: '#F59E0B',
+            fontWeight: '700',
+          },
+        },
+      };
+    }
+  });
+
+  return marked;
+};
+
+  const markedDates = useMemo(() => {
+    return getMarkedDates(restrictedHoliday);
+  }, [restrictedHoliday]);
+
+  /*
+   * From date change
+   */
+  const handleFromDateChange = (day: any) => {
+    const pickedDate = new Date(day.dateString);
+
+    const weekDay = pickedDate.getDay();
+
+    // Weekend
+    if (weekDay === 0 || weekDay === 6) {
+      Alert.alert(
+        'Invalid Date',
+        'Weekend cannot be selected.',
+      );
+      return;
+    }
+
+    const holiday = holidays.find(
+      item => item.date === day.dateString,
+    );
+
+    if (holiday && !holiday.restricted) {
+      Alert.alert(
+        'Holiday',
+        `${holiday.name} is a public holiday.`,
+      );
+      return;
+    }
+
+    setFromDate(pickedDate);
+
+    if (pickedDate > toDate) {
+      setToDate(pickedDate);
+    }
+
+    // Close popup
+    setShowFromPicker(false);
+};
+
+  /*
+   * To date change
+   */
+ const handleToDateChange = (day: any) => {
+  setShowToPicker(false);
+
+  const selectedDate = new Date(day.timestamp);
+
+  const weekDay = selectedDate.getDay();
+
+  // Weekend
+  if (weekDay === 0 || weekDay === 6) {
+    Alert.alert(
+      'Invalid Date',
+      'Saturday and Sunday cannot be selected.',
+    );
+    return;
+  }
+
+  const holiday = holidays.find(
+    item => item.date === day.dateString,
+  );
+
+  if (holiday && !holiday.restricted) {
+    Alert.alert(
+      'Holiday',
+      `${holiday.name} is a public holiday.`,
+    );
+    return;
+  }
+
+  if (selectedDate < fromDate) {
+    Alert.alert(
+      'Invalid Date',
+      'End date cannot be before start date.',
+    );
+    return;
+  }
+
+  setToDate(selectedDate);
+};
 
   const authorities = [
     {
@@ -228,7 +466,7 @@ const ApplyLeave = () => {
       name: 'Ujjwal Sinha',
       designation: 'Project Manager',
     },
-     {
+    {
       id: 4,
       name: 'Pradip Ghosal',
       designation: 'Project Manager',
@@ -260,186 +498,154 @@ const ApplyLeave = () => {
       reason,
     };
 
-    console.log(
-      'Apply Leave Request:',
-      leaveRequest,
-    );
+    console.log('Apply Leave Request:', leaveRequest);
 
-  
     /*
      * Later:
      * API call can be added here.
      */
   };
 
-   /*
-     * Check if there is any restricted holiday between From Date and To Date
-     */
+  /*
+   * Check if there is any restricted holiday between From Date and To Date
+   */
   const hasRestrictedHoliday = () => {
-      const current = new Date(fromDate);
+    const current = new Date(fromDate);
 
-      while (current <= toDate) {
-        const formattedDate = current
-          .toISOString()
-          .split('T')[0];
+    while (current <= toDate) {
+      const formattedDate = current.toISOString().split('T')[0];
 
-        const holiday = holidays.find(
-          item =>
-            item.date === formattedDate &&
-            item.restricted,
-        );
+      const holiday = holidays.find(
+        item => item.date === formattedDate && item.restricted,
+      );
 
-        if (holiday) {
-          setRestrictedHolidayTwoDate(true);
-          return true;
-        }
-
-        current.setDate(current.getDate() + 1);
+      if (holiday) {
+        setRestrictedHolidayTwoDate(true);
+        return true;
       }
 
-      return false;
-    };
+      current.setDate(current.getDate() + 1);
+    }
 
-    useEffect(() => {
-      if (!hasRestrictedHoliday()) {
-        setRestrictedHolidayTwoDate(false);
-        setRestrictedHoliday(false);
-      }
-    }, [fromDate, toDate]);
+    return false;
+  };
 
+  useEffect(() => {
+    if (!hasRestrictedHoliday()) {
+      setRestrictedHolidayTwoDate(false);
+      setRestrictedHoliday(false);
+    }
+  }, [fromDate, toDate]);
 
-   /*
+  /*
    * Calculate Net Leave Days
    */
-    const calculateNetLeaveDays = () => {
-        let count = 0;
+  const calculateNetLeaveDays = () => {
+    let count = 0;
 
-        const current = new Date(fromDate);
+    const current = new Date(fromDate);
 
-        while (current <= toDate) {
-          const day = current.getDay(); // 0 Sunday, 6 Saturday
+    while (current <= toDate) {
+      const day = current.getDay(); // 0 Sunday, 6 Saturday
 
-          // Skip Saturday & Sunday
-          if (day === 0 || day === 6) {
+      // Skip Saturday & Sunday
+      if (day === 0 || day === 6) {
+        current.setDate(current.getDate() + 1);
+        continue;
+      }
+
+      const formattedDate = current.toISOString().split('T')[0];
+
+      const holiday = holidays.find(item => item.date === formattedDate);
+
+      if (holiday) {
+        // Restricted holiday
+        if (holiday.restricted) {
+          if (restrictedHoliday) {
             current.setDate(current.getDate() + 1);
             continue;
           }
-
-          const formattedDate = current
-            .toISOString()
-            .split('T')[0];
-
-          const holiday = holidays.find(
-            item => item.date === formattedDate,
-          );
-
-          if (holiday) {
-            // Restricted holiday
-            if (holiday.restricted) {
-              if (restrictedHoliday) {
-                current.setDate(current.getDate() + 1);
-                continue;
-              }
-            } else {
-              // Normal Holiday
-              current.setDate(current.getDate() + 1);
-              continue;
-            }
-          }
-
-          count++;
-
+        } else {
+          // Normal Holiday
           current.setDate(current.getDate() + 1);
+          continue;
         }
+      }
 
-        if (isSameDate) {
-          if (duration === 'HALF_DAY') {
-            return 0.5;
-          }
+      count++;
 
-          if (duration === 'QUARTERLY') {
-            return 0;
-          }
-        }
+      current.setDate(current.getDate() + 1);
+    }
 
-        return count;
-      };
+    if (isSameDate) {
+      if (duration === 'HALF_DAY') {
+        return 0.5;
+      }
+
+      if (duration === 'QUARTERLY') {
+        return 0;
+      }
+    }
+
+    return count;
+  };
 
   return (
     <View style={styles.container}>
-
       {/* Top Bar */}
       <TopBar
         title="Apply Leave"
-        onMenuPress={() =>
-          setMenuVisible(prev => !prev)
-        }
+        onMenuPress={() => setMenuVisible(prev => !prev)}
       />
 
       {/* Content */}
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}>
-
+        showsVerticalScrollIndicator={false}
+      >
         {/* ==============================
             Leave Balance
         ============================== */}
 
-        <Text style={styles.sectionTitle}>
-          Leave Balance
-        </Text>
+        <Text style={styles.sectionTitle}>Leave Balance</Text>
 
         <View style={styles.balanceRow}>
-
           {/* Total */}
           <View style={styles.balanceCard}>
-            <Text style={styles.balanceLabel}>
-              Total Leave
-            </Text>
+            <Text style={styles.balanceLabel}>Total Leave</Text>
 
-            <Text style={styles.totalValue}>
-              {leaveBalance.totalLeave}
-            </Text>
+            <Text style={styles.totalValue}>{leaveBalance.totalLeave}</Text>
           </View>
 
           {/* Balance */}
           <View style={styles.balanceCard}>
-            <Text style={styles.balanceLabel}>
-              Balance Leave
-            </Text>
+            <Text style={styles.balanceLabel}>Balance Leave</Text>
 
-            <Text style={styles.balanceValue}>
-              {leaveBalance.balanceLeave}
-            </Text>
+            <Text style={styles.balanceValue}>{leaveBalance.balanceLeave}</Text>
           </View>
 
           {/* Restricted */}
           <View style={styles.balanceCard}>
-            <Text style={styles.balanceLabel}>
-              Restricted
-            </Text>
+            <Text style={styles.balanceLabel}>Restricted</Text>
 
             <Text style={styles.restrictedValue}>
               {leaveBalance.restrictedLeave}
             </Text>
           </View>
-
         </View>
 
         {/* ==============================
             From Date
         ============================== */}
 
-        <Text style={styles.label}>
-          From Date
-        </Text>
+        <Text style={styles.label}>From Date</Text>
 
         <TouchableOpacity
           style={styles.dateInput}
           activeOpacity={0.7}
-          onPress={() => setShowFromPicker(true)}>
-
+          onPress={() => setShowFromPicker(!showFromPicker)}
+        >
           {/* <Text style={styles.calendarIcon}>
             📅
           </Text> */}
@@ -450,16 +656,11 @@ const ApplyLeave = () => {
             resizeMode="contain"
           />
 
-          <Text style={styles.dateText}>
-            {formatDate(fromDate)}
-          </Text>
+          <Text style={styles.dateText}>{formatDate(fromDate)}</Text>
 
-          <Text style={styles.arrow}>
-            ›
-          </Text>
-
+          <Text style={styles.arrow}>›</Text>
         </TouchableOpacity>
-
+        {/* 
         {showFromPicker && (
           <DateTimePicker
             value={fromDate}
@@ -471,97 +672,90 @@ const ApplyLeave = () => {
             }
             onChange={handleFromDateChange}
           />
-        )}
+        )} */}
+        {showFromPicker && (
+          <Calendar
+            markingType="custom"
+            markedDates={markedDates}
+            onDayPress={handleFromDateChange}
+          />
+        )} 
 
         {/* ==============================
             To Date
         ============================== */}
 
-        <Text style={styles.label}>
-          To Date
-        </Text>
+        <Text style={styles.label}>To Date</Text>
 
         <TouchableOpacity
           style={styles.dateInput}
           activeOpacity={0.7}
-          onPress={() => setShowToPicker(true)}>
-
+          onPress={() => setShowToPicker(!showToPicker)}
+        >
           {/* <Text style={styles.calendarIcon}>
             📅
           </Text> */}
 
-        <Image
+          <Image
             source={require('../Assets/Icons/calendar.png')}
             style={styles.calendarIcon}
             resizeMode="contain"
           />
 
-          <Text style={styles.dateText}>
-            {formatDate(toDate)}
-          </Text>
+          <Text style={styles.dateText}>{formatDate(toDate)}</Text>
 
-          <Text style={styles.arrow}>
-            ›
-          </Text>
-
+          <Text style={styles.arrow}>›</Text>
         </TouchableOpacity>
 
-        {showToPicker && (
+        {/* {showToPicker && (
           <DateTimePicker
             value={toDate}
             mode="date"
             minimumDate={fromDate}
-            display={
-              Platform.OS === 'ios'
-                ? 'spinner'
-                : 'default'
-            }
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
             onChange={handleToDateChange}
           />
-        )}
-
+        )} */}
+        {showToPicker && (
+          <Calendar
+            markingType="custom"
+            markedDates={getToMarkedDates(fromDate, true)}
+            onDayPress={handleToDateChange}
+          />
+        )} 
         {/* ==============================
             Duration
         ============================== */}
 
-        <Text style={styles.label}>
-          Duration
-        </Text>
+        <Text style={styles.label}>Duration</Text>
 
         <View style={styles.durationContainer}>
-
           {/* Full Day */}
           <TouchableOpacity
             style={[
               styles.durationOption,
-              duration === 'FULL_DAY' &&
-                styles.durationOptionSelected,
+              duration === 'FULL_DAY' && styles.durationOptionSelected,
             ]}
             activeOpacity={0.7}
-            onPress={() =>
-              setDuration('FULL_DAY')
-            }>
-
+            onPress={() => setDuration('FULL_DAY')}
+          >
             <View
               style={[
                 styles.radio,
-                duration === 'FULL_DAY' &&
-                  styles.radioSelected,
-              ]}>
-              {duration === 'FULL_DAY' && (
-                <View style={styles.radioDot} />
-              )}
+                duration === 'FULL_DAY' && styles.radioSelected,
+              ]}
+            >
+              {duration === 'FULL_DAY' && <View style={styles.radioDot} />}
             </View>
 
             <Text
               style={[
                 styles.durationText,
-                duration === 'FULL_DAY' &&
-                  styles.durationTextSelected,
-              ]}>
+                duration === 'FULL_DAY' && styles.durationTextSelected,
+              ]}
+            >
               Full Day
             </Text>
-
           </TouchableOpacity>
 
           {/* Half Day */}
@@ -569,34 +763,28 @@ const ApplyLeave = () => {
             <TouchableOpacity
               style={[
                 styles.durationOption,
-                duration === 'HALF_DAY' &&
-                  styles.durationOptionSelected,
+                duration === 'HALF_DAY' && styles.durationOptionSelected,
               ]}
               activeOpacity={0.7}
-              onPress={() =>
-                setDuration('HALF_DAY')
-              }>
-
+              onPress={() => setDuration('HALF_DAY')}
+            >
               <View
                 style={[
                   styles.radio,
-                  duration === 'HALF_DAY' &&
-                    styles.radioSelected,
-                ]}>
-                {duration === 'HALF_DAY' && (
-                  <View style={styles.radioDot} />
-                )}
+                  duration === 'HALF_DAY' && styles.radioSelected,
+                ]}
+              >
+                {duration === 'HALF_DAY' && <View style={styles.radioDot} />}
               </View>
 
               <Text
                 style={[
                   styles.durationText,
-                  duration === 'HALF_DAY' &&
-                    styles.durationTextSelected,
-                ]}>
+                  duration === 'HALF_DAY' && styles.durationTextSelected,
+                ]}
+              >
                 Half Day
               </Text>
-
             </TouchableOpacity>
           )}
 
@@ -605,67 +793,51 @@ const ApplyLeave = () => {
             <TouchableOpacity
               style={[
                 styles.durationOption,
-                duration === 'QUARTERLY' &&
-                  styles.durationOptionSelected,
+                duration === 'QUARTERLY' && styles.durationOptionSelected,
               ]}
               activeOpacity={0.7}
-              onPress={() =>
-                setDuration('QUARTERLY')
-              }>
-
+              onPress={() => setDuration('QUARTERLY')}
+            >
               <View
                 style={[
                   styles.radio,
-                  duration === 'QUARTERLY' &&
-                    styles.radioSelected,
-                ]}>
-                {duration === 'QUARTERLY' && (
-                  <View style={styles.radioDot} />
-                )}
+                  duration === 'QUARTERLY' && styles.radioSelected,
+                ]}
+              >
+                {duration === 'QUARTERLY' && <View style={styles.radioDot} />}
               </View>
 
               <Text
                 style={[
                   styles.durationText,
-                  duration === 'QUARTERLY' &&
-                    styles.durationTextSelected,
-                ]}>
+                  duration === 'QUARTERLY' && styles.durationTextSelected,
+                ]}
+              >
                 Quarterly Leave
               </Text>
-
             </TouchableOpacity>
           )}
-
         </View>
-
 
         {/* ==============================
                   Duration
               ============================== */}
 
-       <Text style={styles.label}>
-        Net Leave Days
-      </Text>
+        <Text style={styles.label}>Net Leave Days</Text>
 
-      <View style={styles.netLeaveCard}>
-        <Text style={styles.netLeaveValue}>
-          {calculateNetLeaveDays()}
-        </Text>
+        <View style={styles.netLeaveCard}>
+          <Text style={styles.netLeaveValue}>{calculateNetLeaveDays()}</Text>
 
-        <Text style={styles.netLeaveLabel}>
-          {calculateNetLeaveDays() === 1
-            ? 'Day'
-            : 'Days'}
-        </Text>
-      </View>
+          <Text style={styles.netLeaveLabel}>
+            {calculateNetLeaveDays() === 1 ? 'Day' : 'Days'}
+          </Text>
+        </View>
 
         {/* ==============================
             Higher autority
         ============================== */}
 
-        <Text style={styles.label}>
-          Approval Authority
-        </Text>
+        <Text style={styles.label}>Approval Authority</Text>
 
         <View style={styles.authorityCard}>
           {authorities.map(item => {
@@ -683,22 +855,13 @@ const ApplyLeave = () => {
               >
                 {/* Checkbox */}
                 <View
-                  style={[
-                    styles.checkbox,
-                    checked && styles.checkboxSelected,
-                  ]}
+                  style={[styles.checkbox, checked && styles.checkboxSelected]}
                 >
-                  {checked && (
-                    <Text style={styles.checkMark}>
-                      ✓
-                    </Text>
-                  )}
+                  {checked && <Text style={styles.checkMark}>✓</Text>}
                 </View>
 
-                <View style={{flex: 1}}>
-                  <Text style={styles.authorityName}>
-                    {item.name}
-                  </Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.authorityName}>{item.name}</Text>
 
                   <Text style={styles.authorityDesignation}>
                     {item.designation}
@@ -718,35 +881,23 @@ const ApplyLeave = () => {
             <TouchableOpacity
               style={[
                 styles.checkboxRow,
-                restrictedHoliday &&
-                  styles.checkboxRowSelected,
+                restrictedHoliday && styles.checkboxRowSelected,
               ]}
               activeOpacity={0.7}
-              onPress={() =>
-                setRestrictedHoliday(
-                  !restrictedHoliday,
-                )
-              }>
-
+              onPress={() => setRestrictedHoliday(!restrictedHoliday)}
+            >
               <View
                 style={[
                   styles.checkbox,
-                  restrictedHoliday &&
-                    styles.checkboxSelected,
-                ]}>
-
-                {restrictedHoliday && (
-                  <Text style={styles.checkmark}>
-                    ✓
-                  </Text>
-                )}
-
+                  restrictedHoliday && styles.checkboxSelected,
+                ]}
+              >
+                {restrictedHoliday && <Text style={styles.checkmark}>✓</Text>}
               </View>
 
               <Text style={styles.checkboxLabel}>
                 Want to add restricted holiday
               </Text>
-
             </TouchableOpacity>
           </>
         )}
@@ -754,16 +905,12 @@ const ApplyLeave = () => {
             Reason
         ============================== */}
 
-        <Text style={styles.label}>
-          Reason
-        </Text>
+        <Text style={styles.label}>Reason</Text>
 
         <TextInput
           style={styles.reasonInput}
           placeholder="Enter reason..."
-          placeholderTextColor={
-            Colors.textSecondary
-          }
+          placeholderTextColor={Colors.textSecondary}
           value={reason}
           onChangeText={setReason}
           multiline
@@ -777,14 +924,10 @@ const ApplyLeave = () => {
         <TouchableOpacity
           style={styles.applyButton}
           activeOpacity={0.8}
-          onPress={handleApplyLeave}>
-
-          <Text style={styles.applyButtonText}>
-            Apply Leave
-          </Text>
-
+          onPress={handleApplyLeave}
+        >
+          <Text style={styles.applyButtonText}>Apply Leave</Text>
         </TouchableOpacity>
-
       </ScrollView>
 
       {/* Bottom Navigation */}
@@ -794,11 +937,8 @@ const ApplyLeave = () => {
       <SideMenu
         visible={menuVisible}
         selected="Apply Leave"
-        onClose={() =>
-          setMenuVisible(false)
-        }
+        onClose={() => setMenuVisible(false)}
       />
-
     </View>
   );
 };
@@ -1131,113 +1271,113 @@ const styles = StyleSheet.create({
    Leave Summary
 ============================== */
 
-summaryCard: {
-  backgroundColor: Colors.white,
+  summaryCard: {
+    backgroundColor: Colors.white,
 
-  borderRadius: 12,
+    borderRadius: 12,
 
-  borderWidth: 1,
-  borderColor: Colors.border,
+    borderWidth: 1,
+    borderColor: Colors.border,
 
-  padding: 16,
+    padding: 16,
 
-  marginTop: 8,
-},
+    marginTop: 8,
+  },
 
-summaryRow: {
-  flexDirection: 'row',
+  summaryRow: {
+    flexDirection: 'row',
 
-  justifyContent: 'space-between',
+    justifyContent: 'space-between',
 
-  alignItems: 'center',
+    alignItems: 'center',
 
-  paddingVertical: 7,
-},
+    paddingVertical: 7,
+  },
 
-summaryLabel: {
-  fontSize: 14,
+  summaryLabel: {
+    fontSize: 14,
 
-  fontFamily: FontFamily.medium,
+    fontFamily: FontFamily.medium,
 
-  color: Colors.textSecondary,
-},
+    color: Colors.textSecondary,
+  },
 
-summaryValue: {
-  fontSize: 15,
+  summaryValue: {
+    fontSize: 15,
 
-  fontFamily: FontFamily.semiBold,
+    fontFamily: FontFamily.semiBold,
 
-  color: Colors.text,
-},
+    color: Colors.text,
+  },
 
-summaryNegative: {
-  fontSize: 15,
+  summaryNegative: {
+    fontSize: 15,
 
-  fontFamily: FontFamily.semiBold,
+    fontFamily: FontFamily.semiBold,
 
-  color: Colors.accent,
-},
+    color: Colors.accent,
+  },
 
-summaryDivider: {
-  height: 1,
+  summaryDivider: {
+    height: 1,
 
-  backgroundColor: Colors.border,
+    backgroundColor: Colors.border,
 
-  marginVertical: 10,
-},
+    marginVertical: 10,
+  },
 
-netLabel: {
-  fontSize: 15,
+  netLabel: {
+    fontSize: 15,
 
-  fontFamily: FontFamily.bold,
+    fontFamily: FontFamily.bold,
 
-  color: Colors.text,
-},
+    color: Colors.text,
+  },
 
-netValue: {
-  fontSize: 17,
+  netValue: {
+    fontSize: 17,
 
-  fontFamily: FontFamily.bold,
+    fontFamily: FontFamily.bold,
 
-  color: Colors.success,
-},
+    color: Colors.success,
+  },
 
-netLeaveCard: {
-  marginTop: 10,
+  netLeaveCard: {
+    marginTop: 10,
 
-  backgroundColor: Colors.primaryLight,
+    backgroundColor: Colors.primaryLight,
 
-  borderRadius: 12,
+    borderRadius: 12,
 
-  borderWidth: 1,
-  borderColor: Colors.primary,
+    borderWidth: 1,
+    borderColor: Colors.primary,
 
-  alignItems: 'center',
+    alignItems: 'center',
 
-  paddingVertical: 20,
+    paddingVertical: 20,
 
-  marginBottom: 18,
-},
+    marginBottom: 18,
+  },
 
-netLeaveValue: {
-  fontSize: 34,
+  netLeaveValue: {
+    fontSize: 34,
 
-  fontFamily: FontFamily.bold,
+    fontFamily: FontFamily.bold,
 
-  color: Colors.primary,
-},
+    color: Colors.primary,
+  },
 
-netLeaveLabel: {
-  marginTop: 4,
+  netLeaveLabel: {
+    marginTop: 4,
 
-  fontSize: 15,
+    fontSize: 15,
 
-  fontFamily: FontFamily.medium,
+    fontFamily: FontFamily.medium,
 
-  color: Colors.textSecondary,
-},
+    color: Colors.textSecondary,
+  },
 
-/* ==============================
+  /* ==============================
    Approval Authority
 ============================== */
 
@@ -1287,11 +1427,10 @@ netLeaveLabel: {
   },
 
   authorityRowSelected: {
-  backgroundColor: Colors.primaryLight,
-},
+    backgroundColor: Colors.primaryLight,
+  },
 
-
-checkMark: {
+  checkMark: {
     color: Colors.white,
     fontSize: 14,
     fontFamily: FontFamily.bold,
