@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -6,13 +6,16 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../Navigation/AppNavigator';
 
 import TopBar from '../GlobalContainer/TopBar';
 import SideMenu from '../GlobalContainer/SideMenu';
 import BottomBar from '../GlobalContainer/BottomBar';
 
 import Colors from '../Assets/Colors/Colors';
-import {FontFamily} from '../GlobalFont/GlobalFont';
+import { FontFamily } from '../GlobalFont/GlobalFont';
 
 const dashboardData = {
   employee: {
@@ -108,7 +111,13 @@ const getMonthName = (date: string) => {
   });
 };
 
+type DashboardNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'Dashboard'
+>;
+
 const Dashboard = () => {
+  const navigation = useNavigation<DashboardNavigationProp>();
   const [menuVisible, setMenuVisible] = useState(false);
   const [selectedTab, setSelectedTab] = useState('All');
 
@@ -202,26 +211,17 @@ const Dashboard = () => {
 
   return (
     <View style={styles.container}>
-      <TopBar
-        title="Home"
-        onMenuPress={() =>
-          setMenuVisible(prev => !prev)
-        }
-      />
+      <TopBar title="Home" onMenuPress={() => setMenuVisible(prev => !prev)} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.contentContainer}>
-
+        contentContainerStyle={styles.contentContainer}
+      >
         <View style={styles.summaryContainer}>
-
           {/* Total Leave */}
 
           <View style={styles.summaryCard}>
-
-            <Text style={styles.summaryTitle}>
-              Total Leave
-            </Text>
+            <Text style={styles.summaryTitle}>Total Leave</Text>
 
             <Text
               style={[
@@ -229,19 +229,16 @@ const Dashboard = () => {
                 {
                   color: Colors.primary,
                 },
-              ]}>
+              ]}
+            >
               {dashboardData.leaveSummary.totalLeave}
             </Text>
-
           </View>
 
           {/* Balance Leave */}
 
           <View style={styles.summaryCard}>
-
-            <Text style={styles.summaryTitle}>
-              Balance Leave
-            </Text>
+            <Text style={styles.summaryTitle}>Balance Leave</Text>
 
             <Text
               style={[
@@ -249,19 +246,16 @@ const Dashboard = () => {
                 {
                   color: Colors.success,
                 },
-              ]}>
+              ]}
+            >
               {dashboardData.leaveSummary.balanceLeave}
             </Text>
-
           </View>
 
           {/* Early Leave */}
 
           <View style={styles.summaryCard}>
-
-            <Text style={styles.summaryTitle}>
-              Early Leave
-            </Text>
+            <Text style={styles.summaryTitle}>Early Leave</Text>
 
             <Text
               style={[
@@ -269,12 +263,11 @@ const Dashboard = () => {
                 {
                   color: Colors.accent,
                 },
-              ]}>
+              ]}
+            >
               {dashboardData.leaveSummary.earlyLeave}
             </Text>
-
           </View>
-
         </View>
 
         {/* =====================================
@@ -282,33 +275,22 @@ const Dashboard = () => {
         ===================================== */}
 
         <View style={styles.tabsContainer}>
-
           {['All', 'Approve', 'Pending'].map(tab => {
-
             const active = selectedTab === tab;
 
             return (
               <TouchableOpacity
                 key={tab}
-                style={[
-                  styles.tab,
-                  active && styles.activeTab,
-                ]}
+                style={[styles.tab, active && styles.activeTab]}
                 onPress={() => setSelectedTab(tab)}
-                activeOpacity={0.8}>
-
-                <Text
-                  style={[
-                    styles.tabText,
-                    active && styles.activeTabText,
-                  ]}>
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.tabText, active && styles.activeTabText]}>
                   {tab}
                 </Text>
-
               </TouchableOpacity>
             );
           })}
-
         </View>
 
         {/* =====================================
@@ -316,21 +298,11 @@ const Dashboard = () => {
         ===================================== */}
 
         <View style={styles.actionRow}>
+          <Text style={styles.sectionTitle}>Leave Requests</Text>
 
-          <Text style={styles.sectionTitle}>
-            Leave Requests
-          </Text>
-
-          <TouchableOpacity
-            style={styles.applyButton}
-            activeOpacity={0.8}>
-
-            <Text style={styles.applyButtonText}>
-              Apply Leave
-            </Text>
-
+          <TouchableOpacity style={styles.applyButton} activeOpacity={0.8}>
+            <Text style={styles.applyButtonText}>Apply Leave</Text>
           </TouchableOpacity>
-
         </View>
 
         {/* =====================================
@@ -338,31 +310,34 @@ const Dashboard = () => {
         ===================================== */}
 
         {Object.keys(groupedLeaves).map(month => (
-
           <View key={month}>
-
-            <Text style={styles.monthTitle}>
-              {month}
-            </Text>
+            <Text style={styles.monthTitle}>{month}</Text>
 
             {groupedLeaves[month].map(item => {
+              const statusStyle = getStatusStyle(item.status);
 
-              const statusStyle =
-                getStatusStyle(item.status);
-
-              const leaveColor =
-                getLeaveColor(item.type);
+              const leaveColor = getLeaveColor(item.type);
 
               return (
                 <TouchableOpacity
                   key={item.id}
                   style={styles.leaveCard}
-                  activeOpacity={0.8}>
-
+                  activeOpacity={0.8}
+                  onPress={() =>
+                    navigation.navigate('LeaveDetail', {
+                      id: item.id,
+                      type: item.type,
+                      applicationType: item.applicationType,
+                      fromDate: item.fromDate,
+                      toDate: item.toDate,
+                      status: item.status,
+                      reason: item.reason,
+                    })
+                  }
+                >
                   {/* Top */}
 
                   <View style={styles.cardTopRow}>
-
                     <Text style={styles.applicationType}>
                       {item.applicationType}
                     </Text>
@@ -371,61 +346,50 @@ const Dashboard = () => {
                       style={[
                         styles.statusBadge,
                         {
-                          backgroundColor:
-                            statusStyle.backgroundColor,
+                          backgroundColor: statusStyle.backgroundColor,
                         },
-                      ]}>
-
+                      ]}
+                    >
                       <Text
                         style={[
                           styles.statusText,
                           {
-                            color:
-                              statusStyle.color,
+                            color: statusStyle.color,
                           },
-                        ]}>
+                        ]}
+                      >
                         {item.status}
                       </Text>
-
                     </View>
-
                   </View>
 
                   {/* Date */}
 
                   <Text style={styles.dateText}>
-
                     {formatDate(item.fromDate)}
 
                     {item.fromDate !== item.toDate &&
                       ` - ${formatDate(item.toDate)}`}
-
                   </Text>
 
                   {/* Bottom */}
 
                   <View style={styles.cardBottomRow}>
-
                     <Text
                       style={[
                         styles.leaveType,
                         {
                           color: leaveColor,
                         },
-                      ]}>
+                      ]}
+                    >
                       {item.type}
                     </Text>
 
                     <View style={styles.arrowContainer}>
-
-                      <Text style={styles.arrow}>
-                        ›
-                      </Text>
-
+                      <Text style={styles.arrow}>›</Text>
                     </View>
-
                   </View>
-
                 </TouchableOpacity>
               );
             })}
@@ -434,14 +398,9 @@ const Dashboard = () => {
 
         {filteredLeaves.length === 0 && (
           <View style={styles.emptyContainer}>
-
-            <Text style={styles.emptyText}>
-              No leave requests found
-            </Text>
-
+            <Text style={styles.emptyText}>No leave requests found</Text>
           </View>
         )}
-
       </ScrollView>
 
       {/* =====================================
@@ -473,7 +432,6 @@ const Dashboard = () => {
           console.log('Selected:', item);
         }}
       />
-
     </View>
   );
 };
@@ -485,7 +443,6 @@ export default Dashboard;
 ========================================================= */
 
 const styles = StyleSheet.create({
-
   container: {
     flex: 1,
     backgroundColor: Colors.background,
