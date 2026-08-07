@@ -87,14 +87,14 @@ const leaveDetail = {
     {
       id: 2,
       name: 'Manas Mukherjee',
-      designation: 'Delivery Manager',
+      designation: 'Project Manager',
       status: 'Approved',
       date: '08 Aug 2026',
     },
     {
       id: 3,
-      name: 'Ujjwal Sinha',
-      designation: 'Technical Lead',
+      name: 'Prodip Ghosal',
+      designation: 'Project Manager',
       status: 'Pending',
       date: '',
     },
@@ -111,6 +111,22 @@ const LeaveDetail = () => {
 
   const statusStyle = getStatusStyle(status);
 
+
+  return (
+    <View style={styles.container}>
+      {/* ------------------------------------------------
+          Top Bar
+      ------------------------------------------------ */}
+      <TopBar
+        title="Leave Detail"
+        backVisible={true}
+        onMenuPress={() => navigation.goBack()}
+      />
+
+      {/* ------------------------------------------------
+          Content
+      ------------------------------------------------ */}
+      
     <ScrollView
       style={styles.scrollView}
       contentContainerStyle={styles.contentContainer}
@@ -139,18 +155,18 @@ const LeaveDetail = () => {
                           styles.statusText,
                           {color: statusStyle.color},
                       ]}>
-                      {status}
+                      {leaveDetail.status}
                   </Text>
               </View>
 
           </View>
 
           <Text style={styles.headerDate}>
-              {formatDate(fromDate)} - {formatDate(toDate)}
+              {formatDate(leaveDetail.fromDate)} - {formatDate(leaveDetail.toDate)}
           </Text>
 
           <Text style={styles.totalDay}>
-              4 Days
+              {leaveDetail.totalDays} Days
           </Text>
 
       </View>
@@ -205,11 +221,11 @@ const LeaveDetail = () => {
                 valueColor={Colors.primary}
               />
 
-              <InfoRow
+              {/* <InfoRow
                 label="Reason"
                 value={leaveDetail.reason}
                 multiline
-              />
+              /> */}
             </View>
 
           </View>
@@ -229,7 +245,7 @@ const LeaveDetail = () => {
           <View style={styles.infoCard}>
 
               <Text style={styles.reasonText}>
-                  {reason}
+                  {leaveDetail.reason}
               </Text>
 
           </View>
@@ -316,203 +332,10 @@ const LeaveDetail = () => {
 
   </ScrollView>
 
-  return (
-    <View style={styles.container}>
-      {/* ------------------------------------------------
-          Top Bar
-      ------------------------------------------------ */}
-      <TopBar
-        title="Leave Detail"
-        onMenuPress={() => setMenuVisible(prev => !prev)}
-      />
-
-      {/* ------------------------------------------------
-          Content
-      ------------------------------------------------ */}
-      <ScrollView
-    style={styles.scrollView}
-    contentContainerStyle={styles.contentContainer}
-    showsVerticalScrollIndicator={false}>
-
-    {/* Header Card */}
-
-    <View style={styles.headerCard}>
-
-        <View style={styles.headerRow}>
-
-            <Text style={styles.leaveTitle}>
-                {type}
-            </Text>
-
-            <View
-                style={[
-                    styles.statusBadge,
-                    {
-                        backgroundColor:
-                            statusStyle.backgroundColor,
-                    },
-                ]}>
-                <Text
-                    style={[
-                        styles.statusText,
-                        {color: statusStyle.color},
-                    ]}>
-                    {status}
-                </Text>
-            </View>
-
-        </View>
-
-        <Text style={styles.headerDate}>
-            {formatDate(fromDate)} - {formatDate(toDate)}
-        </Text>
-
-        <Text style={styles.totalDay}>
-            4 Days
-        </Text>
-
-    </View>
-
-
-
-    {/* Leave Information */}
-
-    <View style={styles.section}>
-
-        <Text style={styles.sectionTitle}>
-            Leave Information
-        </Text>
-
-        <View style={styles.infoCard}>
-
-            <InfoRow
-                label="Leave Type"
-                value={type}
-            />
-
-            <InfoRow
-                label="Application"
-                value={applicationType}
-            />
-
-            <InfoRow
-                label="From"
-                value={formatDate(fromDate)}
-            />
-
-            <InfoRow
-                label="To"
-                value={formatDate(toDate)}
-            />
-
-            <InfoRow
-                label="Net Leave"
-                value="4 Days"
-            />
-
-        </View>
-
-    </View>
-
-
-
-    {/* Reason */}
-
-    <View style={styles.section}>
-
-        <Text style={styles.sectionTitle}>
-            Reason
-        </Text>
-
-        <View style={styles.infoCard}>
-
-            <Text style={styles.reasonText}>
-                {reason}
-            </Text>
-
-        </View>
-
-    </View>
-
-
-
-    {/* Approval Flow */}
-
-    <View style={styles.section}>
-
-        <Text style={styles.sectionTitle}>
-            Approval Flow
-        </Text>
-
-        <View style={styles.infoCard}>
-
-            <ApprovalItem
-                approved
-                name="Subrata Mukherjee"
-                designation="Project Manager"
-                date="05 Aug 2026 11:10 AM"
-            />
-
-            <ApprovalItem
-                pending
-                name="Manas Mukherjee"
-                designation="Delivery Manager"
-            />
-
-            <ApprovalItem
-                pending
-                name="Ujjwal Sinha"
-                designation="Regional Manager"
-            />
-
-        </View>
-
-    </View>
-
-
-
-    {/* Request */}
-
-    <View style={styles.section}>
-
-        <Text style={styles.sectionTitle}>
-            Request Information
-        </Text>
-
-        <View style={styles.infoCard}>
-
-            <InfoRow
-                label="Request ID"
-                value={id}
-            />
-
-            <InfoRow
-                label="Applied On"
-                value="05 Aug 2026"
-            />
-
-        </View>
-
-    </View>
-
-
-
-    <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => navigation.goBack()}>
-
-        <Text style={styles.backButtonText}>
-            Back
-        </Text>
-
-    </TouchableOpacity>
-
-</ScrollView>
-
       {/* ------------------------------------------------
           Bottom Bar
       ------------------------------------------------ */}
-      <BottomBar selected={0} />
+      {/* <BottomBar selected={0} /> */}
 
       {/* ------------------------------------------------
           Side Menu

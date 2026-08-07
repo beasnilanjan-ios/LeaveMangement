@@ -32,11 +32,11 @@ const menu = [
     icon: require('../Assets/Icons/apply.png'),
   },
   {
-    title: 'Leave History',
+    title: 'Employee Leave History',
     icon: require('../Assets/Icons/calendar2.png'),
   },
   {
-    title: 'Approval',
+    title: 'Leave Requests',
     icon: require('../Assets/Icons/approval.png'),
   },
   {

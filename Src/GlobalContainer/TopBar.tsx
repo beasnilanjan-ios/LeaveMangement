@@ -13,12 +13,14 @@ import {FontFamily} from '../GlobalFont/GlobalFont';
 
 interface TopBarProps {
   title?: string;
+  backVisible?: boolean;
   onMenuPress?: () => void;
   onSearchPress?: () => void;
 }
 
 const TopBar = ({
   title = 'Leaves',
+  backVisible = false,
   onMenuPress,
   onSearchPress,
 }: TopBarProps) => {
@@ -44,7 +46,11 @@ const TopBar = ({
           onPress={onMenuPress}
           activeOpacity={0.7}>
           <Image
-            source={require('../Images/menu_new.png')}
+             source={
+              backVisible
+                ? require('../Assets/Icons/back.png')
+                : require('../Assets/Icons/menu_new.png')
+            }
             style={styles.menu}
             resizeMode="contain"
           />
