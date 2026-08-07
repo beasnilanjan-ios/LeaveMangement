@@ -300,7 +300,10 @@ const Dashboard = () => {
         <View style={styles.actionRow}>
           <Text style={styles.sectionTitle}>Leave Requests</Text>
 
-          <TouchableOpacity style={styles.applyButton} activeOpacity={0.8}>
+          <TouchableOpacity 
+            style={styles.applyButton} 
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate("ApplyLeave")}>
             <Text style={styles.applyButtonText}>Apply Leave</Text>
           </TouchableOpacity>
         </View>
