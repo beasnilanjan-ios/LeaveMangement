@@ -590,6 +590,13 @@ const ApplyLeave = () => {
     return count;
   };
 
+  const getNextDate = (date: Date) => {
+    const next = new Date(date);
+    next.setDate(next.getDate() + 1);
+
+    return formatDateForCompare(next); // yyyy-MM-dd
+  };
+
   return (
     <View style={styles.container}>
       {/* Top Bar */}
@@ -718,6 +725,7 @@ const ApplyLeave = () => {
         )} */}
         {showToPicker && (
           <Calendar
+            current={getNextDate(fromDate)}
             markingType="custom"
             markedDates={getToMarkedDates(fromDate, true)}
             onDayPress={handleToDateChange}
