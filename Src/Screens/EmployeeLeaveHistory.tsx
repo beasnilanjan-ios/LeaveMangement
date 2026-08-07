@@ -1,26 +1,40 @@
 import React, { useMemo, useState } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
+  FlatList,
+  Text,
+  TextInput,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../Navigation/AppNavigator';
 
 import TopBar from '../GlobalContainer/TopBar';
 import SideMenu from '../GlobalContainer/SideMenu';
-import BottomBar from '../GlobalContainer/BottomBar';
 
 import Colors from '../Assets/Colors/Colors';
 import { FontFamily } from '../GlobalFont/GlobalFont';
+import { RootStackParamList } from '../Navigation/AppNavigator';
+import EmployeeCard from '../GlobalContainer/EmployeeCard';
+
+type EmployeeLeaveHistoryRouteProp = RouteProp<
+  RootStackParamList,
+  'EmployeeLeaveHistory'
+>;
+
+type EmployeeLeaveHistoryNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'EmployeeLeaveHistory'
+>;
 
 const dashboardData = {
   employee: {
     id: 'EMP001',
-    name: 'Nilanjan Ghosh',
+    name: 'Rahul Sharma',
+    designation: 'Software Engineer',
   },
 
   leaveSummary: {
@@ -111,17 +125,15 @@ const getMonthName = (date: string) => {
   });
 };
 
-type DashboardNavigationProp = NativeStackNavigationProp<
-  RootStackParamList,
-  'Dashboard'
->;
-
-const Dashboard = () => {
-  const navigation = useNavigation<DashboardNavigationProp>();
-  const [menuVisible, setMenuVisible] = useState(false);
+const EmployeeLeaveHistory = () => {
+  const route = useRoute<EmployeeLeaveHistoryRouteProp>();
+   const { employeeId } =
+    route.params;
   const [selectedTab, setSelectedTab] = useState('All');
 
-  /* -----------------------------------------
+  const navigation = useNavigation<EmployeeLeaveHistoryNavigationProp>();
+
+   /* -----------------------------------------
      Filter
   ----------------------------------------- */
 
@@ -211,239 +223,213 @@ const Dashboard = () => {
 
   return (
     <View style={styles.container}>
-      <TopBar title="Home" onMenuPress={() => setMenuVisible(prev => !prev)} />
+      {/* Top Bar */}
+      <TopBar
+        title="Leave History"
+        backVisible={true}
+        onMenuPress={() => navigation.goBack()}
+      />
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
+      {/* Content */}
+       <ScrollView
+        style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
       >
-        <View style={styles.summaryContainer}>
-          {/* Total Leave */}
+          {/* Your Leave Detail UI */}
+          {/* Employee Card */}
+            <View style={styles.employeeCard}>
+              <Text style={styles.employeeName}>
+                {dashboardData.employee.name}
+              </Text>
 
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryTitle}>Total Leave</Text>
+               <Text style={styles.employeeId}>
+                {'Employee id: ' + dashboardData.employee.id}
+              </Text>
 
-            <Text
-              style={[
-                styles.summaryValue,
-                {
-                  color: Colors.primary,
-                },
-              ]}
-            >
-              {dashboardData.leaveSummary.totalLeave}
-            </Text>
-          </View>
+              <Text style={styles.employeeDesignation}>
+                {dashboardData.employee.designation}
+              </Text>
+            </View>
+            
 
-          {/* Balance Leave */}
+             <View style={styles.summaryContainer}>
+                {/* Total Leave */}
 
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryTitle}>Balance Leave</Text>
+                <View style={styles.summaryCard}>
+                  <Text style={styles.summaryTitle}>Total Leave</Text>
 
-            <Text
-              style={[
-                styles.summaryValue,
-                {
-                  color: Colors.success,
-                },
-              ]}
-            >
-              {dashboardData.leaveSummary.balanceLeave}
-            </Text>
-          </View>
-
-          {/* Early Leave */}
-
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryTitle}>Early Leave</Text>
-
-            <Text
-              style={[
-                styles.summaryValue,
-                {
-                  color: Colors.accent,
-                },
-              ]}
-            >
-              {dashboardData.leaveSummary.earlyLeave}
-            </Text>
-          </View>
-        </View>
-
-        {/* =====================================
-            FILTER TABS
-        ===================================== */}
-
-        <View style={styles.tabsContainer}>
-          {['All', 'Approve', 'Pending'].map(tab => {
-            const active = selectedTab === tab;
-
-            return (
-              <TouchableOpacity
-                key={tab}
-                style={[styles.tab, active && styles.activeTab]}
-                onPress={() => setSelectedTab(tab)}
-                activeOpacity={0.8}
-              >
-                <Text style={[styles.tabText, active && styles.activeTabText]}>
-                  {tab}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        {/* =====================================
-            ACTION
-        ===================================== */}
-
-        <View style={styles.actionRow}>
-          <Text style={styles.sectionTitle}>Leave Requests</Text>
-
-          <TouchableOpacity 
-            style={styles.applyButton} 
-            activeOpacity={0.8}
-            onPress={() => navigation.navigate("ApplyLeave")}>
-            <Text style={styles.applyButtonText}>Apply Leave</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* =====================================
-            LEAVE LIST
-        ===================================== */}
-
-        {Object.keys(groupedLeaves).map(month => (
-          <View key={month}>
-            <Text style={styles.monthTitle}>{month}</Text>
-
-            {groupedLeaves[month].map(item => {
-              const statusStyle = getStatusStyle(item.status);
-
-              const leaveColor = getLeaveColor(item.type);
-
-              return (
-                <TouchableOpacity
-                  key={item.id}
-                  style={styles.leaveCard}
-                  activeOpacity={0.8}
-                  onPress={() =>
-                    navigation.navigate('LeaveDetail', {
-                      id: item.id,
-                      type: item.type,
-                      applicationType: item.applicationType,
-                      fromDate: item.fromDate,
-                      toDate: item.toDate,
-                      status: item.status,
-                      reason: item.reason,
-                    })
-                  }
-                >
-                  {/* Top */}
-
-                  <View style={styles.cardTopRow}>
-                    <Text style={styles.applicationType}>
-                      {item.applicationType}
-                    </Text>
-
-                    <View
-                      style={[
-                        styles.statusBadge,
-                        {
-                          backgroundColor: statusStyle.backgroundColor,
-                        },
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.statusText,
-                          {
-                            color: statusStyle.color,
-                          },
-                        ]}
-                      >
-                        {item.status}
-                      </Text>
-                    </View>
-                  </View>
-
-                  {/* Date */}
-
-                  <Text style={styles.dateText}>
-                    {formatDate(item.fromDate)}
-
-                    {item.fromDate !== item.toDate &&
-                      ` - ${formatDate(item.toDate)}`}
+                  <Text
+                    style={[
+                      styles.summaryValue,
+                      {
+                        color: Colors.primary,
+                      },
+                    ]}
+                  >
+                    {dashboardData.leaveSummary.totalLeave}
                   </Text>
+                </View>
 
-                  {/* Bottom */}
+                {/* Balance Leave */}
 
-                  <View style={styles.cardBottomRow}>
-                    <Text
-                      style={[
-                        styles.leaveType,
-                        {
-                          color: leaveColor,
-                        },
-                      ]}
+                <View style={styles.summaryCard}>
+                  <Text style={styles.summaryTitle}>Balance Leave</Text>
+
+                  <Text
+                    style={[
+                      styles.summaryValue,
+                      {
+                        color: Colors.success,
+                      },
+                    ]}
+                  >
+                    {dashboardData.leaveSummary.balanceLeave}
+                  </Text>
+                </View>
+
+                {/* Early Leave */}
+
+                <View style={styles.summaryCard}>
+                  <Text style={styles.summaryTitle}>Early Leave</Text>
+
+                  <Text
+                    style={[
+                      styles.summaryValue,
+                      {
+                        color: Colors.accent,
+                      },
+                    ]}
+                  >
+                    {dashboardData.leaveSummary.earlyLeave}
+                  </Text>
+                </View>
+              </View>
+
+              {/* =====================================
+                  FILTER TABS
+              ===================================== */}
+
+              <View style={styles.tabsContainer}>
+                {['All', 'Approve', 'Pending'].map(tab => {
+                  const active = selectedTab === tab;
+
+                  return (
+                    <TouchableOpacity
+                      key={tab}
+                      style={[styles.tab, active && styles.activeTab]}
+                      onPress={() => setSelectedTab(tab)}
+                      activeOpacity={0.8}
                     >
-                      {item.type}
-                    </Text>
+                      <Text style={[styles.tabText, active && styles.activeTabText]}>
+                        {tab}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
 
-                    <View style={styles.arrowContainer}>
-                      <Text style={styles.arrow}>›</Text>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        ))}
+              {/* =====================================
+                  LEAVE LIST
+              ===================================== */}
 
-        {filteredLeaves.length === 0 && (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No leave requests found</Text>
-          </View>
-        )}
-      </ScrollView>
+              {Object.keys(groupedLeaves).map(month => (
+                <View key={month}>
+                  <Text style={styles.monthTitle}>{month}</Text>
 
-      {/* =====================================
-          BOTTOM BAR
-      ===================================== */}
+                  {groupedLeaves[month].map(item => {
+                    const statusStyle = getStatusStyle(item.status);
 
-      <BottomBar
-        selected={0}
-        onHomePress={() => {
-          console.log('Home');
-        }}
-        onApplyPress={() => {
-          console.log('Apply Leave');
-        }}
-        onHolidayPress={() => {
-          console.log('Holiday');
-        }}
-      />
+                    const leaveColor = getLeaveColor(item.type);
 
-      {/* =====================================
-          SIDE MENU
-      ===================================== */}
+                    return (
+                      <TouchableOpacity
+                        key={item.id}
+                        style={styles.leaveCard}
+                        activeOpacity={0.8}
+                        onPress={() =>
+                          navigation.navigate('LeaveDetail', {
+                            id: item.id,
+                            type: item.type,
+                            applicationType: item.applicationType,
+                            fromDate: item.fromDate,
+                            toDate: item.toDate,
+                            status: item.status,
+                            reason: item.reason,
+                          })
+                        }
+                      >
+                        {/* Top */}
 
-      <SideMenu
-        visible={menuVisible}
-        selected="Home"
-        onClose={() => setMenuVisible(false)}
-        onItemPress={item => {
-          console.log('Selected:', item);
-        }}
-      />
+                        <View style={styles.cardTopRow}>
+                          <Text style={styles.applicationType}>
+                            {item.applicationType}
+                          </Text>
+
+                          <View
+                            style={[
+                              styles.statusBadge,
+                              {
+                                backgroundColor: statusStyle.backgroundColor,
+                              },
+                            ]}
+                          >
+                            <Text
+                              style={[
+                                styles.statusText,
+                                {
+                                  color: statusStyle.color,
+                                },
+                              ]}
+                            >
+                              {item.status}
+                            </Text>
+                          </View>
+                        </View>
+
+                        {/* Date */}
+
+                        <Text style={styles.dateText}>
+                          {formatDate(item.fromDate)}
+
+                          {item.fromDate !== item.toDate &&
+                            ` - ${formatDate(item.toDate)}`}
+                        </Text>
+
+                        {/* Bottom */}
+
+                        <View style={styles.cardBottomRow}>
+                          <Text
+                            style={[
+                              styles.leaveType,
+                              {
+                                color: leaveColor,
+                              },
+                            ]}
+                          >
+                            {item.type}
+                          </Text>
+
+                          <View style={styles.arrowContainer}>
+                            <Text style={styles.arrow}>›</Text>
+                          </View>
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              ))}
+
+              {filteredLeaves.length === 0 && (
+                <View style={styles.emptyContainer}>
+                  <Text style={styles.emptyText}>No leave found</Text>
+                </View>
+              )}
+          </ScrollView>
     </View>
   );
 };
 
-export default Dashboard;
-
-/* =========================================================
-   STYLES
-========================================================= */
+export default EmployeeLeaveHistory;
 
 const styles = StyleSheet.create({
   container: {
@@ -451,17 +437,78 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
 
-  contentContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 15,
-    paddingBottom: 20,
+  scrollView: {
+    flex: 1,
   },
 
-  /* =====================================
-     SUMMARY
-  ===================================== */
+  contentContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 18,
+    paddingBottom: 25,
+  },
 
-  summaryContainer: {
+  searchInput: {
+    height: 48,
+
+    backgroundColor: Colors.white,
+
+    borderRadius: 10,
+
+    borderWidth: 1,
+    borderColor: Colors.border,
+
+    paddingHorizontal: 16,
+
+    fontSize: 14,
+    fontFamily: FontFamily.regular,
+    color: Colors.text,
+
+    marginBottom: 18,
+  },
+
+   employeeCard: {
+  backgroundColor: Colors.white,
+  borderRadius: 14,
+  padding: 18,
+  borderWidth: 1,
+  borderColor: Colors.border,
+  marginBottom: 18,
+},
+
+employeeName: {
+  fontSize: 20,
+  fontFamily: FontFamily.bold,
+  color: Colors.text,
+},
+
+employeeId: {
+  marginTop: 4,
+  fontSize: 14,
+  fontFamily: FontFamily.regular,
+  color: Colors.textSecondary,
+},
+
+employeeDesignation: {
+  marginTop: 4,
+  fontSize: 12,
+  fontFamily: FontFamily.regular,
+  color: Colors.primary,
+},
+
+statusBadge: {
+  alignSelf: 'flex-start',
+  marginTop: 14,
+  paddingHorizontal: 14,
+  paddingVertical: 6,
+  borderRadius: 20,
+},
+
+statusText: {
+  fontSize: 13,
+  fontFamily: FontFamily.semiBold,
+},
+
+summaryContainer: {
     flexDirection: 'row',
     gap: 10,
   },
@@ -691,19 +738,6 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.medium,
 
     color: Colors.textSecondary,
-  },
-
-  statusBadge: {
-    paddingHorizontal: 11,
-
-    paddingVertical: 6,
-
-    borderRadius: 7,
-  },
-
-  statusText: {
-    fontSize: 12,
-    fontFamily: FontFamily.semiBold,
   },
 
   dateText: {

@@ -78,15 +78,23 @@ type NavigationProp =
 
   switch (title) {
     case 'Home':
-      navigation.replace('Dashboard');
+      navigation.navigate('Dashboard');
       break;
 
     case 'Apply Leave':
-      navigation.replace('ApplyLeave');
+      navigation.navigate('ApplyLeave');
       break;
 
+    case 'Employee Leave History':
+      navigation.navigate('EmployeeList');
+      break;
+
+     case 'Leave Requests':
+      navigation.navigate('LeaveRequest');
+      break;  
+  
     case 'Holiday':
-      navigation.replace('Holiday');
+      navigation.navigate('Holiday');
       break;
 
     case 'Logout':
