@@ -14,6 +14,11 @@ import {useNavigation} from '@react-navigation/native';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 
 import type {RootStackParamList} from '../Navigation/AppNavigator';
+import {
+  getCurrentUser,
+  clearCurrentUser,
+  clearCurrentLoginResponse,
+} from '../Services/AuthSession';
 
 interface SideMenuProps {
   visible: boolean;
@@ -71,6 +76,8 @@ type NavigationProp =
     return null;
   }
 
+ const user = getCurrentUser();
+
  const handleItemPress = (title: string) => {
   onItemPress?.(title);
 
@@ -93,11 +100,17 @@ type NavigationProp =
       navigation.navigate('LeaveRequest');
       break;  
   
-    case 'Holiday':
+     case 'Holiday':
       navigation.navigate('Holiday');
       break;
 
+    case 'Profile':
+      navigation.navigate('Profile');
+      break;
+
     case 'Logout':
+      clearCurrentUser();
+      clearCurrentLoginResponse();
       navigation.replace('Login');
       break;  
 
@@ -138,11 +151,13 @@ type NavigationProp =
           </View>
 
           <Text style={styles.name}>
-            Nilanjan Ghosh
+            {user?.name ?? 'Employee'}
           </Text>
 
           <Text style={styles.employeeId}>
-            Employee ID : EMP001
+            {user
+              ? `Employee ID : ${user.employeeId}`
+              : 'Employee ID : -'}
           </Text>
 
         </View>

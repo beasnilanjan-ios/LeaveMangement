@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  TextInput,
   TouchableOpacity,
   StatusBar,
   Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Alert,
 } from 'react-native';
 
 import GlobalTextInput from '../GlobalContainer/GlobalTextInput';
@@ -19,20 +19,110 @@ import { FontFamily } from '../GlobalFont/GlobalFont';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../Navigation/AppNavigator';
+import { login } from '../Services/AuthService';
+import {
+  setCurrentLoginResponse,
+  clearCurrentUser,
+} from '../Services/AuthSession';
+import {
+  saveRememberedCredentials,
+  loadRememberedCredentials,
+  clearRememberedCredentials,
+} from '../Services/CredentialStorage';
 
 type LoginNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   'Login'
 >;
 
+//test nilanjan//
+
+const DEFAULT_PASSWORD = 'temp123';
+
 const Login = () => {
   const [employeeId, setEmployeeId] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigation = useNavigation<LoginNavigationProp>();
 
-  const handleLogin = () => {
-    console.log('Login:', employeeId, password);
-    navigation.navigate('Dashboard');
+  /* -----------------------------------------
+     Load remembered credentials
+  ----------------------------------------- */
+
+  useEffect(() => {
+    const loadCredentials = async () => {
+      const remembered = await loadRememberedCredentials();
+
+      if (remembered) {
+        setEmployeeId(remembered.identifier);
+        setPassword(remembered.password);
+        setRememberMe(true);
+      }
+    };
+
+    loadCredentials();
+  }, []);
+
+  const toggleRememberMe = async () => {
+    const nextValue = !rememberMe;
+
+    setRememberMe(nextValue);
+
+    if (!nextValue) {
+      await clearRememberedCredentials();
+    }
+  };
+
+  const handleRememberCredentials = async () => {
+    if (rememberMe) {
+      await saveRememberedCredentials(employeeId.trim(), password);
+    } else {
+      await clearRememberedCredentials();
+    }
+  };
+
+  const handleLogin = async () => {
+    const identifier = employeeId.trim();
+
+    if (!identifier || !password) {
+      setErrorMessage('Please enter employee ID and password');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setErrorMessage('');
+
+      const response = await login(identifier, password);
+
+      await handleRememberCredentials();
+
+      clearCurrentUser();
+      setCurrentLoginResponse(response);
+
+      if (password === DEFAULT_PASSWORD) {
+        Alert.alert(
+          'Security',
+          'For security reasons, you must set a new password before you can continue.',
+          [
+            {
+              text: 'OK',
+              onPress: () => navigation.replace('ResetPassword'),
+            },
+          ],
+        );
+      } else {
+        navigation.replace('Dashboard');
+      }
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : 'Unable to login',
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -74,6 +164,8 @@ const Login = () => {
             value={employeeId}
             onChangeText={setEmployeeId}
             icon={require('../Assets/Icons/user.png')}
+            keyboardType="number-pad"
+            editable={!loading}
           />
 
           {/* Password */}
@@ -83,15 +175,47 @@ const Login = () => {
             onChangeText={setPassword}
             isPassword
             icon={require('../Assets/Icons/password.png')}
+            editable={!loading}
           />
 
+          {/* Remember Me */}
+          <TouchableOpacity
+            style={styles.rememberRow}
+            activeOpacity={0.7}
+            onPress={toggleRememberMe}
+          >
+            <View style={styles.checkboxContainer}>
+              <View
+                style={[
+                  styles.checkbox,
+                  rememberMe && styles.checkboxChecked,
+                ]}
+              >
+                {rememberMe && <Text style={styles.checkmark}>✓</Text>}
+              </View>
+
+              <Text style={styles.rememberText}>Remember Me</Text>
+            </View>
+          </TouchableOpacity>
+
+          {errorMessage ? (
+            <Text style={styles.errorMessage}>
+              {errorMessage}
+            </Text>
+          ) : null}
+
           {/* Sign In */}
-          <GlobalButton title="Sign In" onPress={handleLogin} />
+          <GlobalButton
+            title="Sign In"
+            onPress={handleLogin}
+            loading={loading}
+            disabled={loading}
+          />
 
           {/* Forgot Password */}
           <TouchableOpacity
             activeOpacity={0.7}
-            onPress={() => console.log('Forgot Password')}
+            onPress={() => navigation.navigate('ForgotPassword')}
           >
             <Text style={styles.forgotPassword}>Forgot Password?</Text>
           </TouchableOpacity>
@@ -256,6 +380,50 @@ const styles = StyleSheet.create({
   },
 
   /* -------------------------
+     Remember Me
+  ------------------------- */
+
+  rememberRow: {
+    width: '100%',
+    marginBottom: 6,
+    alignItems: 'flex-end',
+  },
+
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: Colors.primary,
+    backgroundColor: Colors.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 9,
+  },
+
+  checkboxChecked: {
+    backgroundColor: Colors.primary,
+  },
+
+  checkmark: {
+    color: Colors.white,
+    fontSize: 14,
+    fontFamily: FontFamily.semiBold,
+    lineHeight: 16,
+  },
+
+  rememberText: {
+    fontSize: 15,
+    fontFamily: FontFamily.medium,
+    color: Colors.textSecondary,
+  },
+
+  /* -------------------------
      Button
   ------------------------- */
 
@@ -297,5 +465,14 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: FontFamily.semiBold,
     marginTop: 30,
+  },
+
+  errorMessage: {
+    width: '100%',
+    color: Colors.rejected,
+    fontSize: 13,
+    fontFamily: FontFamily.medium,
+    marginBottom: 14,
+    textAlign: 'center',
   },
 });

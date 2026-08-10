@@ -1,10 +1,11 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -16,81 +17,14 @@ import BottomBar from '../GlobalContainer/BottomBar';
 
 import Colors from '../Assets/Colors/Colors';
 import { FontFamily } from '../GlobalFont/GlobalFont';
-
-const dashboardData = {
-  employee: {
-    id: 'EMP001',
-    name: 'Nilanjan Ghosh',
-  },
-
-  leaveSummary: {
-    totalLeave: 24,
-    balanceLeave: 14,
-    earlyLeave: 3,
-  },
-
-  leaveRequests: [
-    {
-      id: 'LR001',
-      type: 'Casual Leave',
-      applicationType: 'Full Day Application',
-      fromDate: '2026-08-12',
-      toDate: '2026-08-12',
-      status: 'Approve',
-      reason: 'Personal work',
-    },
-
-    {
-      id: 'LR002',
-      type: 'Sick Leave',
-      applicationType: 'Half Day Application',
-      fromDate: '2026-08-08',
-      toDate: '2026-08-08',
-      status: 'Pending',
-      reason: 'Medical appointment',
-    },
-
-    {
-      id: 'LR003',
-      type: 'Casual Leave',
-      applicationType: '3 Days Application',
-      fromDate: '2026-07-20',
-      toDate: '2026-07-22',
-      status: 'Approve',
-      reason: 'Family function',
-    },
-
-    {
-      id: 'LR004',
-      type: 'Sick Leave',
-      applicationType: 'Full Day Application',
-      fromDate: '2026-07-10',
-      toDate: '2026-07-10',
-      status: 'Pending',
-      reason: 'Not feeling well',
-    },
-
-    {
-      id: 'LR005',
-      type: 'Casual Leave',
-      applicationType: 'Full Day Application',
-      fromDate: '2026-06-25',
-      toDate: '2026-06-25',
-      status: 'Approve',
-      reason: 'Personal work',
-    },
-
-    {
-      id: 'LR006',
-      type: 'Early Leave',
-      applicationType: 'Early Leave Application',
-      fromDate: '2026-06-18',
-      toDate: '2026-06-18',
-      status: 'Pending',
-      reason: 'Personal reason',
-    },
-  ],
-};
+import {
+  DashboardDataModel,
+  getDashboard,
+} from '../Services/DashboardService';
+import {
+  getCurrentUser as fetchCurrentUser,
+} from '../Services/AuthService';
+import { setCurrentUser } from '../Services/AuthSession';
 
 const formatDate = (date: string) => {
   const d = new Date(date);
@@ -120,12 +54,55 @@ const Dashboard = () => {
   const navigation = useNavigation<DashboardNavigationProp>();
   const [menuVisible, setMenuVisible] = useState(false);
   const [selectedTab, setSelectedTab] = useState('All');
+  const [dashboardData, setDashboardData] =
+    useState<DashboardDataModel | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  /* -----------------------------------------
+     Fetch Dashboard Data
+  ----------------------------------------- */
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        setLoading(true);
+        setErrorMessage('');
+
+        const data = await getDashboard();
+
+        setDashboardData(data);
+
+        // Once dashboard data is loaded, fetch the
+        // current user profile and cache it in the session.
+        try {
+          const user = await fetchCurrentUser();
+
+          setCurrentUser(user);
+        } catch (error) {
+          console.warn('Unable to load profile:', error);
+        }
+      } catch (error) {
+        setErrorMessage(
+          error instanceof Error ? error.message : 'Unable to load dashboard',
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboard();
+  }, []);
 
   /* -----------------------------------------
      Filter
   ----------------------------------------- */
 
   const filteredLeaves = useMemo(() => {
+    if (!dashboardData) {
+      return [];
+    }
+
     if (selectedTab === 'All') {
       return dashboardData.leaveRequests;
     }
@@ -133,7 +110,7 @@ const Dashboard = () => {
     return dashboardData.leaveRequests.filter(
       item => item.status === selectedTab,
     );
-  }, [selectedTab]);
+  }, [selectedTab, dashboardData]);
 
   /* -----------------------------------------
      Group by month
@@ -141,7 +118,7 @@ const Dashboard = () => {
 
   const groupedLeaves = useMemo(() => {
     const groups: {
-      [key: string]: typeof dashboardData.leaveRequests;
+      [key: string]: typeof filteredLeaves;
     } = {};
 
     filteredLeaves.forEach(item => {
@@ -217,6 +194,16 @@ const Dashboard = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.contentContainer}
       >
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={Colors.primary} />
+          </View>
+        ) : errorMessage && !dashboardData ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>{errorMessage}</Text>
+          </View>
+        ) : (
+          <>
         <View style={styles.summaryContainer}>
           {/* Total Leave */}
 
@@ -231,7 +218,7 @@ const Dashboard = () => {
                 },
               ]}
             >
-              {dashboardData.leaveSummary.totalLeave}
+              {dashboardData?.leaveSummary.totalLeave}
             </Text>
           </View>
 
@@ -248,7 +235,7 @@ const Dashboard = () => {
                 },
               ]}
             >
-              {dashboardData.leaveSummary.balanceLeave}
+              {dashboardData?.leaveSummary.balanceLeave}
             </Text>
           </View>
 
@@ -265,7 +252,7 @@ const Dashboard = () => {
                 },
               ]}
             >
-              {dashboardData.leaveSummary.earlyLeave}
+              {dashboardData?.leaveSummary.earlyLeave}
             </Text>
           </View>
         </View>
@@ -404,24 +391,15 @@ const Dashboard = () => {
             <Text style={styles.emptyText}>No leave requests found</Text>
           </View>
         )}
+          </>
+        )}
       </ScrollView>
 
       {/* =====================================
           BOTTOM BAR
       ===================================== */}
 
-      <BottomBar
-        selected={0}
-        onHomePress={() => {
-          console.log('Home');
-        }}
-        onApplyPress={() => {
-          console.log('Apply Leave');
-        }}
-        onHolidayPress={() => {
-          console.log('Holiday');
-        }}
-      />
+      <BottomBar selected={0} />
 
       {/* =====================================
           SIDE MENU
@@ -748,6 +726,18 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
 
     lineHeight: 30,
+  },
+
+  /* =====================================
+     LOADING
+  ===================================== */
+
+  loadingContainer: {
+    height: 300,
+
+    justifyContent: 'center',
+
+    alignItems: 'center',
   },
 
   /* =====================================

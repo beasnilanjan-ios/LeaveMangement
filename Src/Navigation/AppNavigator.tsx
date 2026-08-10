@@ -3,6 +3,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import Splash from '../Screens/Splash';
 import Login from '../Screens/Login';
+import ForgotPassword from '../Screens/ForgotPassword';
+import ResetPassword from '../Screens/ResetPassword';
 import Dashboard from '../Screens/Dashboard';
 import Holiday from '../Screens/Holiday';
 import ApplyLeave from '../Screens/ApplyLeave';
@@ -11,10 +13,13 @@ import LeaveRequest from '../Screens/LeaveRequest';
 import LeaveRequestDetail from '../Screens/LeaveRequestDetail';
 import EmployeeList from '../Screens/EmployeeList';
 import EmployeeLeaveHistory from '../Screens/EmployeeLeaveHistory';
+import Profile from '../Screens/Profile';
 
 export type RootStackParamList = {
   Splash: undefined;
   Login: undefined;
+  ForgotPassword: undefined;
+  ResetPassword: undefined;
   Dashboard: undefined;
   Holiday: undefined;
   ApplyLeave: undefined;
@@ -35,6 +40,7 @@ export type RootStackParamList = {
   EmployeeLeaveHistory: {
     employeeId: string;
   }
+  Profile: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -52,6 +58,10 @@ const AppNavigator = () => {
 
       <Stack.Screen name="Login" component={Login} />
 
+      <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
+
+      <Stack.Screen name="ResetPassword" component={ResetPassword} />
+
       <Stack.Screen name="Dashboard" component={Dashboard} />
 
       <Stack.Screen name="Holiday" component={Holiday} />
@@ -67,6 +77,8 @@ const AppNavigator = () => {
       <Stack.Screen name="EmployeeList" component={EmployeeList} />
 
       <Stack.Screen name="EmployeeLeaveHistory" component={EmployeeLeaveHistory} />
+
+      <Stack.Screen name="Profile" component={Profile} />
 
     </Stack.Navigator>
   );
