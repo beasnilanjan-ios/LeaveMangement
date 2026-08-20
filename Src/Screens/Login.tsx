@@ -385,13 +385,14 @@ const styles = StyleSheet.create({
 
   rememberRow: {
     width: '100%',
-    marginBottom: 6,
-    alignItems: 'flex-end',
+    marginBottom: 18,
+    marginTop: -8,
   },
 
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    alignSelf: 'flex-start',
   },
 
   checkbox: {
