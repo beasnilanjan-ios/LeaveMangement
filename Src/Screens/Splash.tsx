@@ -12,6 +12,7 @@ import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 
 import type {RootStackParamList} from '../Navigation/AppNavigator';
 import { FontFamily } from '../GlobalFont/GlobalFont';
+import {getCurrentLoginResponse, initAuthSession} from '../Services/AuthSession';
 
 type SplashNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -57,7 +58,17 @@ const Splash = () => {
     ]).start();
 
     const timer = setTimeout(() => {
-      navigation.replace('Login');
+      (async () => {
+        await initAuthSession();
+
+        const user = getCurrentLoginResponse()?.user;
+
+        if (user == null || user.employeeId == null || user.employeeId === undefined) {
+          navigation.replace('Login');
+        } else {
+          navigation.replace('Dashboard');
+        }
+      })();
     }, 3000);
 
     return () => clearTimeout(timer);

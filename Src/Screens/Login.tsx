@@ -391,13 +391,14 @@ const styles = StyleSheet.create({
 
   checkboxContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    justifyContent: 'flex-start',
     alignSelf: 'flex-start',
   },
 
   checkbox: {
-    width: 22,
-    height: 22,
+    width: 20,
+    height: 20,
     borderRadius: 6,
     borderWidth: 1.5,
     borderColor: Colors.primary,
@@ -419,7 +420,7 @@ const styles = StyleSheet.create({
   },
 
   rememberText: {
-    fontSize: 15,
+    fontSize: 14,
     fontFamily: FontFamily.medium,
     color: Colors.textSecondary,
   },

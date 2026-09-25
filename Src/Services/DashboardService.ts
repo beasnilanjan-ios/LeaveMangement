@@ -1,5 +1,4 @@
-import { BASE_URL } from './ApiConfig';
-import { getAuthToken } from './AuthSession';
+import RestApi from './RestApi';
 
 export interface LeaveRequestJson {
   id: string;
@@ -149,21 +148,10 @@ export class DashboardDataModel {
 }
 
 export const getDashboard = async (): Promise<DashboardDataModel> => {
-  const token = getAuthToken();
+  const json = await RestApi.get<DashboardResponseJson>('/api/dashboard');
 
-  const response = await fetch(`${BASE_URL}/api/dashboard`, {
-    method: 'GET',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  const json = (await response.json()) as DashboardResponseJson;
-
-  if (!response.ok) {
-    throw new Error(json.message || 'Unable to load dashboard');
+  if (!json) {
+    throw new Error('Unable to load dashboard');
   }
 
   if (!json.data) {

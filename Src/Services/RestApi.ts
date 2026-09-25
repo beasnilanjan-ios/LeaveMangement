@@ -1,5 +1,6 @@
-import {BASE_URL} from './ApiConfig';
-import {getAuthToken} from './AuthSession';
+import { BASE_URL } from './ApiConfig';
+import { getAuthToken } from './AuthSession';
+import ApiLogger from './ApiLogger';
 
 class RestApi {
   private async request<T>(
@@ -7,6 +8,7 @@ class RestApi {
     options: RequestInit = {},
   ): Promise<T> {
     const token = getAuthToken();
+    console.log('Auth Token:', token); // Log the token for debugging purposes
 
     const url = `${BASE_URL}${endpoint}`;
 
@@ -24,25 +26,26 @@ class RestApi {
       Object.assign(headers, options.headers);
     }
 
-    console.log('========== API REQUEST ==========');
-    console.log('URL:', url);
-    console.log('Method:', options.method || 'GET');
+    const requestId = ApiLogger.createRequestId();
+    const start = Date.now();
 
-    console.log('Headers:', {
-      ...headers,
-      Authorization: token ? 'Bearer ********' : undefined,
-    });
-
+    let parsedRequestBody: any = undefined;
     if (options.body) {
       try {
-        console.log(
-          'Request Body:',
-          JSON.parse(options.body as string),
-        );
+        parsedRequestBody = JSON.parse(options.body as string);
       } catch {
-        console.log('Request Body:', options.body);
+        parsedRequestBody = options.body;
       }
     }
+
+    ApiLogger.logApi({
+      id: requestId,
+      type: 'request',
+      method: options.method || 'GET',
+      url,
+      headers,
+      body: parsedRequestBody,
+    });
 
     try {
       const response = await fetch(url, {
@@ -50,9 +53,7 @@ class RestApi {
         headers,
       });
 
-      console.log('========== API RESPONSE ==========');
-      console.log('Status:', response.status);
-      console.log('OK:', response.ok);
+      const durationMs = Date.now() - start;
 
       const text = await response.text();
 
@@ -64,20 +65,50 @@ class RestApi {
         json = text;
       }
 
-      console.log('Response Data:', json);
+      ApiLogger.logApi({
+        id: requestId,
+        type: 'response',
+        method: options.method || 'GET',
+        url,
+        status: response.status,
+        ok: response.ok,
+        durationMs,
+        body: parsedRequestBody,
+        headers,
+        // attach small response payload
+        // put response into `body` field for consistency
+        body: undefined,
+      });
+
+      ApiLogger.logApi({
+        id: requestId,
+        type: 'response',
+        method: options.method || 'GET',
+        url,
+        status: response.status,
+        ok: response.ok,
+        durationMs,
+        body: json,
+      });
 
       if (!response.ok) {
         throw new Error(
           json?.message ||
-            `Request failed with status ${response.status}`,
+          `Request failed with status ${response.status}`,
         );
       }
 
       return json as T;
     } catch (error) {
-      console.error('========== API ERROR ==========');
-      console.error('URL:', url);
-      console.error('Error:', error);
+      const durationMs = Date.now() - start;
+      ApiLogger.logApi({
+        id: requestId,
+        type: 'error',
+        method: options.method || 'GET',
+        url,
+        durationMs,
+        error,
+      });
 
       throw error;
     }

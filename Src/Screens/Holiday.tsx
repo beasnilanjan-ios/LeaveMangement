@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 
 import TopBar from '../GlobalContainer/TopBar';
@@ -13,78 +14,12 @@ import SideMenu from '../GlobalContainer/SideMenu';
 import BottomBar from '../GlobalContainer/BottomBar';
 
 import Colors from '../Assets/Colors/Colors';
-import {FontFamily} from '../GlobalFont/GlobalFont';
-
-/* ---------------------------------------------------
-   Static Holiday Data
-   Later you can directly replace this with API data
---------------------------------------------------- */
-
-const holidayData = [
-  {
-    id: 1,
-    date: '2026-01-26',
-    day: 'Mon',
-    name: 'Republic Day',
-    type: 'General',
-  },
-  {
-    id: 2,
-    date: '2026-03-04',
-    day: 'Wed',
-    name: 'Holi',
-    type: 'General',
-  },
-  {
-    id: 3,
-    date: '2026-04-03',
-    day: 'Fri',
-    name: 'Good Friday',
-    type: 'General',
-  },
-  {
-    id: 4,
-    date: '2026-05-01',
-    day: 'Fri',
-    name: 'May Day',
-    type: 'Restricted',
-  },
-  {
-    id: 5,
-    date: '2026-08-15',
-    day: 'Sat',
-    name: 'Independence Day',
-    type: 'General',
-  },
-  {
-    id: 6,
-    date: '2026-09-04',
-    day: 'Fri',
-    name: 'Janmashtami',
-    type: 'Restricted',
-  },
-  {
-    id: 7,
-    date: '2026-10-02',
-    day: 'Fri',
-    name: 'Gandhi Jayanti',
-    type: 'General',
-  },
-  {
-    id: 8,
-    date: '2026-10-20',
-    day: 'Tue',
-    name: 'Diwali',
-    type: 'General',
-  },
-  {
-    id: 9,
-    date: '2026-12-25',
-    day: 'Fri',
-    name: 'Christmas',
-    type: 'General',
-  },
-];
+import { FontFamily } from '../GlobalFont/GlobalFont';
+import {
+  HolidayDataModel,
+  HolidayModel,
+  getHolidays,
+} from '../Services/HolidayService';
 
 /* ---------------------------------------------------
    Helpers
@@ -121,19 +56,61 @@ const Holiday = () => {
 
   const [selectedType, setSelectedType] = useState('All');
 
+  const [holidayData, setHolidayData] = useState<HolidayDataModel | null>(null);
+
+  const [loading, setLoading] = useState(true);
+
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth();
+
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+
+  /* ---------------------------------------------------
+     Fetch Holidays
+  --------------------------------------------------- */
+
+  const fetchHolidays = async (year: number) => {
+    try {
+      setLoading(true);
+      setErrorMessage('');
+
+      const data = await getHolidays(year);
+
+      setHolidayData(data);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : 'Unable to load holidays',
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getCurrentYear = (): number => {
+    return new Date().getFullYear();
+  };
+
+  useEffect(() => {
+    fetchHolidays(currentYear);
+  }, []);
+
   /* ---------------------------------------------------
      Filter Holidays
   --------------------------------------------------- */
 
   const filteredHolidays = useMemo(() => {
-    if (selectedType === 'All') {
-      return holidayData;
+    if (!holidayData) {
+      return [];
     }
 
-    return holidayData.filter(
-      item => item.type === selectedType,
-    );
-  }, [selectedType]);
+    if (selectedType === 'All') {
+      return holidayData.holidayData;
+    }
+
+    return holidayData.holidayData.filter(item => item.type === selectedType);
+  }, [selectedType, holidayData]);
 
   /* ---------------------------------------------------
      Group Holidays By Month
@@ -141,7 +118,7 @@ const Holiday = () => {
 
   const groupedHolidays = useMemo(() => {
     return filteredHolidays.reduce(
-      (groups: {[key: string]: typeof holidayData}, item) => {
+      (groups: { [key: string]: HolidayModel[] }, item) => {
         const month = getMonthName(item.date);
 
         if (!groups[month]) {
@@ -158,285 +135,263 @@ const Holiday = () => {
 
   return (
     <View style={styles.container}>
-
-      {/* ------------------------------------------------
-          Top Bar
-      ------------------------------------------------ */}
-
       <TopBar
         title="Holiday"
-        onMenuPress={() =>
-          setMenuVisible(prev => !prev)
-        }
+        onMenuPress={() => setMenuVisible(prev => !prev)}
       />
-
-      {/* ------------------------------------------------
-          Content
-      ------------------------------------------------ */}
 
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
-        showsVerticalScrollIndicator={false}>
+        showsVerticalScrollIndicator={false}
+      >
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={Colors.primary} />
+          </View>
+        ) : errorMessage && !holidayData ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyTitle}>Unable to Load Holidays</Text>
 
-        {/* Page Title */}
+            <Text style={styles.emptyText}>{errorMessage}</Text>
+          </View>
+        ) : (
+          <>
+            {/* Page Title */}
 
-        <Text style={styles.pageTitle}>
-          Holiday Calendar
-        </Text>
+            <Text style={styles.pageTitle}>Holiday Calendar</Text>
 
-        <Text style={styles.pageSubtitle}>
-          View upcoming holidays and company holidays
-        </Text>
+            <Text style={styles.pageSubtitle}>
+              View upcoming holidays and company holidays
+            </Text>
 
-        {/* ------------------------------------------------
-            Holiday Period
-        ------------------------------------------------ */}
-
-        <TouchableOpacity
-          activeOpacity={0.7}
-          style={styles.periodContainer}>
-
-          <View style={styles.periodLeft}>
-
-            <Image
-              source={require('../Assets/Icons/calendar2.png')}
-              style={styles.periodIcon}
-              resizeMode="contain"
-            />
-
-            <View>
-              <Text style={styles.periodLabel}>
+            {/* ------------------------------------------------
                 Holiday Period
-              </Text>
+            ------------------------------------------------ */}
 
-              <Text style={styles.periodValue}>
-                Jan 2026 - Dec 2026
-              </Text>
+            <View style={styles.periodContainer}>
+              {/* LEFT SECTION */}
+              <View style={styles.periodLeftContainer}>
+                {selectedYear > currentYear && (
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => {
+                      setSelectedYear(currentYear);
+                      fetchHolidays(currentYear);
+                    }}
+                    style={styles.periodArrowButton}
+                  >
+                    {/* <Text style={styles.arrow}>‹</Text> */}
+                    <View style={styles.cardArrowContainer}>
+                      <Text style={styles.cardArrow}>‹</Text>
+                    </View>
+                  </TouchableOpacity>
+                )}
+
+                <View style={styles.periodLeft}>
+                  <Image
+                    source={require('../Assets/Icons/calendar2.png')}
+                    style={styles.periodIcon}
+                    resizeMode="contain"
+                  />
+
+                  <View>
+                    <Text style={styles.periodLabel}>Holiday Period</Text>
+
+                    <Text style={styles.periodValue}>
+                      {holidayData?.holidayPeriod}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* RIGHT SECTION */}
+              {selectedYear === currentYear && currentMonth === 11 && (
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    const nextYear = currentYear + 1;
+                    setSelectedYear(nextYear);
+                    fetchHolidays(nextYear);
+                  }}
+                  style={styles.rightArrowButton}
+                >
+                  {/* <Text style={styles.arrow}>›</Text> */}
+                  <View style={styles.cardArrowContainer}>
+                      <Text style={styles.cardArrow}>›</Text>
+                    </View>
+                </TouchableOpacity>
+              )}
             </View>
 
-          </View>
+            {/* ------------------------------------------------
+                Holiday Type
+            ------------------------------------------------ */}
 
-          <Text style={styles.arrow}>
-            ›
-          </Text>
+            <Text style={styles.sectionTitle}>Holiday Type</Text>
 
-        </TouchableOpacity>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.filterContainer}
+            >
+              {/* All */}
 
-        {/* ------------------------------------------------
-            Holiday Type
-        ------------------------------------------------ */}
-
-        <Text style={styles.sectionTitle}>
-          Holiday Type
-        </Text>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filterContainer}>
-
-          {/* All */}
-
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() => setSelectedType('All')}
-            style={[
-              styles.filterButton,
-              selectedType === 'All' &&
-                styles.filterButtonSelected,
-            ]}>
-
-            <Text
-              style={[
-                styles.filterText,
-                selectedType === 'All' &&
-                  styles.filterTextSelected,
-              ]}>
-              All
-            </Text>
-
-          </TouchableOpacity>
-
-          {/* General */}
-
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() =>
-              setSelectedType('General')
-            }
-            style={[
-              styles.filterButton,
-              selectedType === 'General' &&
-                styles.filterButtonSelected,
-            ]}>
-
-            <Text
-              style={[
-                styles.filterText,
-                selectedType === 'General' &&
-                  styles.filterTextSelected,
-              ]}>
-              General Holiday
-            </Text>
-
-          </TouchableOpacity>
-
-          {/* Restricted */}
-
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() =>
-              setSelectedType('Restricted')
-            }
-            style={[
-              styles.filterButton,
-              selectedType === 'Restricted' &&
-                styles.filterButtonSelected,
-            ]}>
-
-            <Text
-              style={[
-                styles.filterText,
-                selectedType === 'Restricted' &&
-                  styles.filterTextSelected,
-              ]}>
-              Restricted Holiday
-            </Text>
-
-          </TouchableOpacity>
-
-        </ScrollView>
-
-        {/* ------------------------------------------------
-            Holiday List
-        ------------------------------------------------ */}
-
-        {Object.keys(groupedHolidays).map(month => (
-          <View
-            key={month}
-            style={styles.monthSection}>
-
-            {/* Month */}
-
-            <Text style={styles.monthTitle}>
-              {month}
-            </Text>
-
-            {/* Holidays */}
-
-            {groupedHolidays[month].map(item => (
               <TouchableOpacity
-                key={item.id}
-                activeOpacity={0.8}
-                style={styles.holidayCard}>
-
-                {/* Date Box */}
-
-                <View
+                activeOpacity={0.7}
+                onPress={() => setSelectedType('All')}
+                style={[
+                  styles.filterButton,
+                  selectedType === 'All' && styles.filterButtonSelected,
+                ]}
+              >
+                <Text
                   style={[
-                    styles.dateBox,
-                    item.type === 'Restricted' &&
-                      styles.restrictedDateBox,
-                  ]}>
-
-                  <Text style={styles.dateNumber}>
-                    {getDateNumber(item.date)}
-                  </Text>
-
-                  <Text style={styles.dateMonth}>
-                    {getMonthShort(item.date)}
-                  </Text>
-
-                </View>
-
-                {/* Holiday Information */}
-
-                <View style={styles.holidayInfo}>
-
-                  <Text style={styles.holidayName}>
-                    {item.name}
-                  </Text>
-
-                  <Text style={styles.holidayDay}>
-                    {item.day}
-                  </Text>
-
-                  <View
-                    style={[
-                      styles.typeBadge,
-                      item.type === 'Restricted' &&
-                        styles.restrictedBadge,
-                    ]}>
-
-                    <Text
-                      style={[
-                        styles.typeBadgeText,
-                        item.type === 'Restricted' &&
-                          styles.restrictedBadgeText,
-                      ]}>
-                      {item.type === 'General'
-                        ? 'General Holiday'
-                        : 'Restricted Holiday'}
-                    </Text>
-
-                  </View>
-
-                </View>
-
-                {/* Arrow */}
-
-                <View style={styles.cardArrowContainer}>
-                  <Text style={styles.cardArrow}>
-                    ›
-                  </Text>
-                </View>
-
+                    styles.filterText,
+                    selectedType === 'All' && styles.filterTextSelected,
+                  ]}
+                >
+                  All
+                </Text>
               </TouchableOpacity>
+
+              {/* General */}
+
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => setSelectedType('General')}
+                style={[
+                  styles.filterButton,
+                  selectedType === 'General' && styles.filterButtonSelected,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.filterText,
+                    selectedType === 'General' && styles.filterTextSelected,
+                  ]}
+                >
+                  General Holiday
+                </Text>
+              </TouchableOpacity>
+
+              {/* Restricted */}
+
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => setSelectedType('Restricted')}
+                style={[
+                  styles.filterButton,
+                  selectedType === 'Restricted' && styles.filterButtonSelected,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.filterText,
+                    selectedType === 'Restricted' && styles.filterTextSelected,
+                  ]}
+                >
+                  Restricted Holiday
+                </Text>
+              </TouchableOpacity>
+            </ScrollView>
+
+            {/* ------------------------------------------------
+                Holiday List
+            ------------------------------------------------ */}
+
+            {Object.keys(groupedHolidays).map(month => (
+              <View key={month} style={styles.monthSection}>
+                <Text style={styles.monthTitle}>{month}</Text>
+
+                {groupedHolidays[month].map(item => (
+                  <TouchableOpacity
+                    key={item.id}
+                    activeOpacity={0.8}
+                    style={styles.holidayCard}
+                  >
+                    {/* Date Box */}
+
+                    <View
+                      style={[
+                        styles.dateBox,
+                        item.type === 'Restricted' && styles.restrictedDateBox,
+                      ]}
+                    >
+                      <Text style={styles.dateNumber}>
+                        {getDateNumber(item.date)}
+                      </Text>
+
+                      <Text style={styles.dateMonth}>
+                        {getMonthShort(item.date)}
+                      </Text>
+                    </View>
+
+                    {/* Holiday Information */}
+
+                    <View style={styles.holidayInfo}>
+                      <Text style={styles.holidayName}>{item.purpose}</Text>
+
+                      <Text style={styles.holidayDay}>{item.day}</Text>
+
+                      <View
+                        style={[
+                          styles.typeBadge,
+                          item.type === 'Restricted' && styles.restrictedBadge,
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.typeBadgeText,
+                            item.type === 'Restricted' &&
+                              styles.restrictedBadgeText,
+                          ]}
+                        >
+                          {item.type === 'General'
+                            ? 'General Holiday'
+                            : 'Restricted Holiday'}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* Arrow */}
+
+                    {/* <View style={styles.cardArrowContainer}>
+                      <Text style={styles.cardArrow}>›</Text>
+                    </View> */}
+                  </TouchableOpacity>
+                ))}
+              </View>
             ))}
-          </View>
-        ))}
 
-        {/* Empty State */}
+            {/* Empty State */}
 
-        {filteredHolidays.length === 0 && (
-          <View style={styles.emptyContainer}>
+            {filteredHolidays.length === 0 && (
+              <View style={styles.emptyContainer}>
+                <Image
+                  source={require('../Assets/Icons/calendar2.png')}
+                  style={styles.emptyIcon}
+                  resizeMode="contain"
+                />
 
-            <Image
-              source={require('../Assets/Icons/calendar2.png')}
-              style={styles.emptyIcon}
-              resizeMode="contain"
-            />
+                <Text style={styles.emptyTitle}>No Holidays Found</Text>
 
-            <Text style={styles.emptyTitle}>
-              No Holidays Found
-            </Text>
-
-            <Text style={styles.emptyText}>
-              There are no holidays for the selected type.
-            </Text>
-
-          </View>
+                <Text style={styles.emptyText}>
+                  There are no holidays for the selected type.
+                </Text>
+              </View>
+            )}
+          </>
         )}
-
       </ScrollView>
 
-      {/* ------------------------------------------------
-          Bottom Bar
-      ------------------------------------------------ */}
-
       <BottomBar selected={2} />
-
-      {/* ------------------------------------------------
-          Side Menu
-      ------------------------------------------------ */}
 
       <SideMenu
         visible={menuVisible}
         selected="Holiday"
         onClose={() => setMenuVisible(false)}
       />
-
     </View>
   );
 };
@@ -486,26 +441,49 @@ const styles = StyleSheet.create({
 
   periodContainer: {
     marginTop: 20,
-
     minHeight: 58,
 
     backgroundColor: Colors.white,
 
     borderWidth: 1,
     borderColor: Colors.border,
-
     borderRadius: 10,
 
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
 
-    paddingHorizontal: 14,
+    paddingHorizontal: 8,
+  },
+
+  periodLeftContainer: {
+    flex: 1, // IMPORTANT
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 
   periodLeft: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+
+  periodArrowButton: {
+    width: 38,
+    height: 42,
+
+    justifyContent: 'center',
+    alignItems: 'center',
+
+    marginRight: 4,
+  },
+
+  rightArrowButton: {
+    width: 38,
+    height: 42,
+
+    justifyContent: 'center',
+    alignItems: 'center',
+
+    marginLeft: 'auto', // IMPORTANT
   },
 
   periodIcon: {
@@ -525,7 +503,6 @@ const styles = StyleSheet.create({
 
   periodValue: {
     marginTop: 2,
-
     fontSize: 14,
     fontFamily: FontFamily.medium,
     color: Colors.text,
@@ -747,28 +724,27 @@ const styles = StyleSheet.create({
   --------------------------------------------------- */
 
   cardArrowContainer: {
-    width: 30,
-    height: 30,
+  width: 30,
+  height: 30,
 
-    borderRadius: 15,
+  borderRadius: 15,
 
-    backgroundColor: Colors.background,
+  backgroundColor: Colors.background,
 
-    justifyContent: 'center',
-    alignItems: 'center',
+  justifyContent: 'center',
+  alignItems: 'center',
+},
 
-    marginRight: 5,
-  },
+cardArrow: {
+  fontSize: 25,
+  lineHeight: 30,
 
-  cardArrow: {
-    fontSize: 25,
+  fontFamily: FontFamily.regular,
 
-    fontFamily: FontFamily.regular,
+  color: Colors.textSecondary,
 
-    color: Colors.textSecondary,
-
-    marginTop: -2,
-  },
+  textAlign: 'center',
+},
 
   /* ---------------------------------------------------
      Empty
@@ -809,5 +785,10 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
 
     textAlign: 'center',
+  },
+  loadingContainer: {
+    height: 300,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
