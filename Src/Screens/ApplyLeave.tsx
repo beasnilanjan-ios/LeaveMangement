@@ -31,7 +31,7 @@ type LeaveDuration = 'FULL_DAY' | 'HALF_DAY' | 'QUARTERLY';
 const leaveBalance = {
   totalLeave: 33,
   balanceLeave: 25,
-  restrictedLeave: 3,
+  restrictedLeave: 1,
 };
 
 const ApplyLeave = () => {
@@ -161,6 +161,13 @@ const ApplyLeave = () => {
     return `${year}-${month}-${day}`;
   };
 
+  const getFromDateMinDate = () => {
+    const minDate = new Date();
+    minDate.setHours(0, 0, 0, 0);
+    minDate.setMonth(minDate.getMonth() - 1);
+    return minDate;
+  };
+
   const isHoliday = (date: Date) => {
     return holidays.some(
       item => item.date === formatDateForCompare(date) && !item.restricted,
@@ -183,15 +190,14 @@ const ApplyLeave = () => {
     const current = new Date(startYear, 0, 1);
     const last = new Date(endYear, 11, 31);
 
-    // Today's date (remove time)
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // Minimum allowed From Date = one month before today
+    const minFromDate = getFromDateMinDate();
 
     while (current <= last) {
       const dateKey = formatDateForCompare(current);
 
-      // Disable previous dates
-      if (current < today) {
+      // Disable dates older than one month before today
+      if (current < minFromDate) {
         marked[dateKey] = {
           disabled: true,
           disableTouchEvent: true,
@@ -246,21 +252,26 @@ const ApplyLeave = () => {
           },
         };
       } else {
-        // Restricted Holiday (Enabled)
-        marked[item.date] = {
-          ...existing,
-          disabled: false,
-          disableTouchEvent: false,
-          customStyles: {
-            container: {
-              backgroundColor: '#FFF7E6',
+        // Restricted Holiday (Enabled only if it is within the allowed range)
+        const holidayDate = new Date(`${item.date}T00:00:00`);
+        const minFromDate = getFromDateMinDate();
+
+        if (holidayDate >= minFromDate) {
+          marked[item.date] = {
+            ...existing,
+            disabled: false,
+            disableTouchEvent: false,
+            customStyles: {
+              container: {
+                backgroundColor: '#FFF7E6',
+              },
+              text: {
+                color: '#F59E0B',
+                fontWeight: '700',
+              },
             },
-            text: {
-              color: '#F59E0B',
-              fontWeight: '700',
-            },
-          },
-        };
+          };
+        }
       }
     });
 
@@ -884,7 +895,7 @@ const ApplyLeave = () => {
             Restricted Holiday
         ============================== */}
 
-        {restrictedHolidayTwoDate && (
+        {restrictedHolidayTwoDate && leaveBalance.restrictedLeave>0 && (
           <>
             <TouchableOpacity
               style={[
