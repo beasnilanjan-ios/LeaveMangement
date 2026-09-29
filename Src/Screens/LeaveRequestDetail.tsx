@@ -3,13 +3,12 @@ import {
   View,
   StyleSheet,
   ScrollView,
-  FlatList,
   Text,
   TextInput,
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import TopBar from '../GlobalContainer/TopBar';
@@ -20,158 +19,135 @@ import Colors from '../Assets/Colors/Colors';
 import { FontFamily } from '../GlobalFont/GlobalFont';
 import { RootStackParamList } from '../Navigation/AppNavigator';
 import InfoRow from '../GlobalContainer/InfoRow';
+import { updateLeaveStatus } from '../Services/LeaveRequestService';
+
+type LeaveRequestDetailRouteProp = RouteProp<
+  RootStackParamList,
+  'LeaveRequestDetail'
+>;
 
 type NavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   'LeaveRequestDetail'
 >;
 
-const leaveDetail = {
-  id: 'LR-1001',
-
-  employee: {
-    id: 'EMP1023',
-    name: 'Rahul Sharma',
-    designation: 'Software Engineer',
-  },
-
-  leaveType: 'Casual Leave',
-
-  fromDate: '2026-09-02',
-
-  toDate: '2026-09-05',
-
-  noOfDays: 4,
-
-  duration: 'Full Day',
-
-  reason:
-    'Family tour to attend a wedding ceremony. Need to take time off to be with family and participate in the celebrations.',
-
-  status: 'Pending',
-
-  approvals: [
-    {
-      id: 1,
-      manager: 'Subrata Mukherjee',
-      designation: 'Project Manager',
-      status: 'Approved',
-      date: '02 Sep 2026 10:30 AM',
-    },
-    {
-      id: 2,
-      manager: 'Manas Mukherjee',
-      designation: 'Project Manager',
-      status: 'Pending',
-      date: '',
-    },
-  ],
-};
-
 const LeaveRequestDetail = () => {
   const navigation = useNavigation<NavigationProp>();
+  const route = useRoute<LeaveRequestDetailRouteProp>();
+  const item = route.params;
+
+  const employeeName = item.employeeName || 'N/A';
+  const designation = item.designation || 'N/A';
+  const leaveType = item.leaveType || 'N/A';
+  const noOfDays = item.no_of_days ?? 0;
+  const duration = item.duration || 'N/A';
+  const reason = item.reason || 'N/A';
 
   const [rejectReason, setRejectReason] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const status = item.status === 'Approve' ? 'Approved' : item.status;
+
+  const handleStatusUpdate = async (nextStatus: 'Approved' | 'Rejected') => {
+    try {
+      setSubmitting(true);
+
+      const payload = {
+        noOfDays: String(noOfDays),
+        status: nextStatus,
+        ...(nextStatus === 'Rejected' && {
+          rejection_reason: rejectReason.trim(),
+        }),
+      };
+
+      await updateLeaveStatus(item.id, payload);
+      Alert.alert('Success', 'Leave status updated');
+      navigation.goBack();
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Unable to update leave status';
+      Alert.alert('Error', message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
-      {/* Top Bar */}
       <TopBar
         title="Leave Detail"
         backVisible={true}
         onMenuPress={() => navigation.goBack()}
       />
 
-      {/* Content */}
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
       >
-        {/* Your Leave Detail UI */}
-        {/* Employee Card */}
-          <View style={styles.employeeCard}>
-            <Text style={styles.employeeName}>
-              {leaveDetail.employee.name}
-            </Text>
+        <View style={styles.employeeCard}>
+          <Text style={styles.employeeName}>{employeeName}</Text>
 
-            <Text style={styles.employeeDesignation}>
-              {leaveDetail.employee.designation}
-            </Text>
+          <Text style={styles.employeeDesignation}>{designation}</Text>
 
-            <View
+          <View
+            style={[
+              styles.statusBadge,
+              {
+                backgroundColor:
+                  status === 'Pending'
+                    ? Colors.pendingLight
+                    : status === 'Approved'
+                    ? Colors.successLight
+                    : Colors.rejectedLight,
+              },
+            ]}
+          >
+            <Text
               style={[
-                styles.statusBadge,
+                styles.statusText,
                 {
-                  backgroundColor:
-                    leaveDetail.status === 'Pending'
-                      ? Colors.pendingLight
-                      : leaveDetail.status === 'Approved'
-                      ? Colors.successLight
-                      : Colors.rejectedLight,
+                  color:
+                    status === 'Pending'
+                      ? Colors.pending
+                      : status === 'Approved'
+                      ? Colors.success
+                      : Colors.rejected,
                 },
-              ]}>
-              <Text
-                style={[
-                  styles.statusText,
-                  {
-                    color:
-                      leaveDetail.status === 'Pending'
-                        ? Colors.pending
-                        : leaveDetail.status === 'Approved'
-                        ? Colors.success
-                        : Colors.rejected,
-                  },
-                ]}>
-                {leaveDetail.status}
-              </Text>
-            </View>
+              ]}
+            >
+              {status}
+            </Text>
           </View>
+        </View>
 
-          {/* Leave Details */}
-          <View style={styles.card}>
-            <Text style={styles.sectionTitle}>Leave Information</Text>
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Leave Information</Text>
 
-            <InfoRow
-              label="Leave Type"
-              value={leaveDetail.leaveType}
-            />
+          <InfoRow label="Leave Type" value={leaveType} />
 
-            <InfoRow
-              label="From Date"
-              value={leaveDetail.fromDate}
-            />
+          <InfoRow label="From Date" value={item.fromDate || 'N/A'} />
 
-            <InfoRow
-              label="To Date"
-              value={leaveDetail.toDate}
-            />
+          <InfoRow label="To Date" value={item.toDate || 'N/A'} />
 
-            <InfoRow
-              label="No. of Days"
-              value={`${leaveDetail.noOfDays}`}
-            />
+          <InfoRow label="No. of Days" value={String(noOfDays)} />
 
-            <InfoRow
-              label="Duration"
-              value={leaveDetail.duration}
-            />
+          <InfoRow label="Duration" value={duration} />
+        </View>
+
+        <View style={styles.reasonCard}>
+          <Text style={styles.reasonTitle}>Reason for Leave</Text>
+
+          <View style={styles.reasonBox}>
+            <Text style={styles.reasonText}>{reason}</Text>
           </View>
+        </View>
 
-          <View style={styles.reasonCard}>
-            <Text style={styles.reasonTitle}>Reason for Leave</Text>
-
-            <View style={styles.reasonBox}>
-              <Text style={styles.reasonText}>
-                {leaveDetail.reason}
-              </Text>
-            </View>
-          </View>
-
-          {/* Reject Reason */}
+        {item.status === 'Pending' && (
           <Text style={styles.rejectLabel}>
             Reject Reason (Required only if rejecting)
           </Text>
-
+        )}
+        {item.status === 'Pending' && (
           <TextInput
             style={styles.rejectInput}
             multiline
@@ -180,16 +156,17 @@ const LeaveRequestDetail = () => {
             value={rejectReason}
             onChangeText={setRejectReason}
           />
+        )}
 
-          {/* Action Buttons */}
+        {item.status === 'Pending' && (
           <View style={styles.buttonContainer}>
             <TouchableOpacity
               style={styles.approveButton}
-              onPress={() => {
-                console.log('Approved');
-              }}>
+              onPress={() => handleStatusUpdate('Approved')}
+              disabled={submitting}
+            >
               <Text style={styles.approveText}>
-                Approve Leave
+                {submitting ? 'Updating...' : 'Approve Leave'}
               </Text>
             </TouchableOpacity>
 
@@ -204,14 +181,16 @@ const LeaveRequestDetail = () => {
                   return;
                 }
 
-                console.log('Rejected', rejectReason);
-              }}>
+                handleStatusUpdate('Rejected');
+              }}
+              disabled={submitting}
+            >
               <Text style={styles.rejectText}>
-                Reject Leave
+                {submitting ? 'Updating...' : 'Reject Leave'}
               </Text>
             </TouchableOpacity>
           </View>
-       
+        )}
       </ScrollView>
     </View>
   );
@@ -235,165 +214,136 @@ const styles = StyleSheet.create({
     paddingBottom: 25,
   },
 
-  pageTitle: {
-    fontSize: 23,
+  employeeCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 14,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginBottom: 18,
+  },
+
+  employeeName: {
+    fontSize: 20,
     fontFamily: FontFamily.bold,
     color: Colors.text,
   },
 
-  pageSubtitle: {
+  employeeDesignation: {
     marginTop: 4,
-    fontSize: 13,
+    fontSize: 14,
     fontFamily: FontFamily.regular,
     color: Colors.textSecondary,
   },
 
-  employeeCard: {
-  backgroundColor: Colors.white,
-  borderRadius: 14,
-  padding: 18,
-  borderWidth: 1,
-  borderColor: Colors.border,
-  marginBottom: 18,
-},
+  statusBadge: {
+    alignSelf: 'flex-start',
+    marginTop: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
 
-employeeName: {
-  fontSize: 20,
-  fontFamily: FontFamily.bold,
-  color: Colors.text,
-},
+  statusText: {
+    fontSize: 13,
+    fontFamily: FontFamily.semiBold,
+  },
 
-employeeDesignation: {
-  marginTop: 4,
-  fontSize: 14,
-  fontFamily: FontFamily.regular,
-  color: Colors.textSecondary,
-},
+  card: {
+    backgroundColor: Colors.white,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: 18,
+  },
 
-statusBadge: {
-  alignSelf: 'flex-start',
-  marginTop: 14,
-  paddingHorizontal: 14,
-  paddingVertical: 6,
-  borderRadius: 20,
-},
+  sectionTitle: {
+    fontSize: 16,
+    fontFamily: FontFamily.bold,
+    color: Colors.text,
+    marginBottom: 15,
+  },
 
-statusText: {
-  fontSize: 13,
-  fontFamily: FontFamily.semiBold,
-},
+  rejectLabel: {
+    marginTop: 22,
+    marginBottom: 8,
+    fontSize: 14,
+    fontFamily: FontFamily.medium,
+    color: Colors.text,
+  },
 
-card: {
-  backgroundColor: Colors.white,
-  borderRadius: 14,
-  borderWidth: 1,
-  borderColor: Colors.border,
-  padding: 18,
-},
+  rejectInput: {
+    minHeight: 120,
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: 14,
+    textAlignVertical: 'top',
+    fontSize: 14,
+    color: Colors.text,
+    fontFamily: FontFamily.regular,
+  },
 
-sectionTitle: {
-  fontSize: 16,
-  fontFamily: FontFamily.bold,
-  color: Colors.text,
-  marginBottom: 15,
-},
+  buttonContainer: {
+    flexDirection: 'row',
+    marginTop: 25,
+    gap: 12,
+  },
 
-infoRow: {
-  marginBottom: 16,
-},
+  approveButton: {
+    flex: 1,
+    height: 52,
+    borderRadius: 12,
+    backgroundColor: Colors.success,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 
-infoLabel: {
-  fontSize: 13,
-  fontFamily: FontFamily.medium,
-  color: Colors.textSecondary,
-},
+  approveText: {
+    color: Colors.white,
+    fontFamily: FontFamily.semiBold,
+    fontSize: 15,
+  },
 
-infoValue: {
-  marginTop: 4,
-  fontSize: 15,
-  fontFamily: FontFamily.semiBold,
-  color: Colors.text,
-},
+  rejectButton: {
+    flex: 1,
+    height: 52,
+    borderRadius: 12,
+    backgroundColor: Colors.rejected,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 
-rejectLabel: {
-  marginTop: 22,
-  marginBottom: 8,
-  fontSize: 14,
-  fontFamily: FontFamily.medium,
-  color: Colors.text,
-},
+  rejectText: {
+    color: Colors.white,
+    fontFamily: FontFamily.semiBold,
+    fontSize: 15,
+  },
 
-rejectInput: {
-  minHeight: 120,
-  backgroundColor: Colors.white,
-  borderRadius: 12,
-  borderWidth: 1,
-  borderColor: Colors.border,
-  padding: 14,
-  textAlignVertical: 'top',
-  fontSize: 14,
-  color: Colors.text,
-  fontFamily: FontFamily.regular,
-},
+  reasonCard: {
+    marginTop: 18,
+  },
 
-buttonContainer: {
-  flexDirection: 'row',
-  marginTop: 25,
-  gap: 12,
-},
+  reasonTitle: {
+    fontSize: 16,
+    fontFamily: FontFamily.bold,
+    color: Colors.text,
+    marginBottom: 10,
+  },
 
-approveButton: {
-  flex: 1,
-  height: 52,
-  borderRadius: 12,
-  backgroundColor: Colors.success,
-  justifyContent: 'center',
-  alignItems: 'center',
-},
+  reasonBox: {
+    backgroundColor: Colors.white,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 14,
+    padding: 16,
+  },
 
-approveText: {
-  color: Colors.white,
-  fontFamily: FontFamily.semiBold,
-  fontSize: 15,
-},
-
-rejectButton: {
-  flex: 1,
-  height: 52,
-  borderRadius: 12,
-  backgroundColor: Colors.rejected,
-  justifyContent: 'center',
-  alignItems: 'center',
-},
-
-rejectText: {
-  color: Colors.white,
-  fontFamily: FontFamily.semiBold,
-  fontSize: 15,
-},
-reasonCard: {
-  marginTop: 18,
-},
-
-reasonTitle: {
-  fontSize: 16,
-  fontFamily: FontFamily.bold,
-  color: Colors.text,
-  marginBottom: 10,
-},
-
-reasonBox: {
-  backgroundColor: Colors.white,
-  borderWidth: 1,
-  borderColor: Colors.border,
-  borderRadius: 14,
-  padding: 16,
-},
-
-reasonText: {
-  fontSize: 14,
-  lineHeight: 22,
-  fontFamily: FontFamily.regular,
-  color: Colors.text,
-},
+  reasonText: {
+    fontSize: 14,
+    lineHeight: 22,
+    fontFamily: FontFamily.regular,
+    color: Colors.text,
+  },
 });

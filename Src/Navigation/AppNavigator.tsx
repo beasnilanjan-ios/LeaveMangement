@@ -24,8 +24,20 @@ export type RootStackParamList = {
   Holiday: undefined;
   ApplyLeave: undefined;
   LeaveRequest: undefined;
-  LeaveRequestDetail  :{
-    id: number;
+  LeaveRequestDetail: {
+    id: number | string;
+    employeeId: number | string;
+    employeeName: string;
+    leaveType: string;
+    designation: string;
+    applicationType: string;
+    fromDate: string;
+    toDate: string;
+    status: string;
+    appliedOn: string;
+    no_of_days: number;
+    duration: string;
+    reason: string;
   };
   LeaveDetail: {
     id: string;
@@ -39,7 +51,7 @@ export type RootStackParamList = {
   EmployeeList: undefined;
   EmployeeLeaveHistory: {
     employeeId: string;
-  }
+  };
   Profile: undefined;
 };
 
@@ -72,14 +84,16 @@ const AppNavigator = () => {
 
       <Stack.Screen name="LeaveRequest" component={LeaveRequest} />
 
-      <Stack.Screen name="LeaveRequestDetail" component={LeaveRequestDetail } />
+      <Stack.Screen name="LeaveRequestDetail" component={LeaveRequestDetail} />
 
       <Stack.Screen name="EmployeeList" component={EmployeeList} />
 
-      <Stack.Screen name="EmployeeLeaveHistory" component={EmployeeLeaveHistory} />
+      <Stack.Screen
+        name="EmployeeLeaveHistory"
+        component={EmployeeLeaveHistory}
+      />
 
       <Stack.Screen name="Profile" component={Profile} />
-
     </Stack.Navigator>
   );
 };

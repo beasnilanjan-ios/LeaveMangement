@@ -1,15 +1,14 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
   StyleSheet,
   Text,
   TouchableOpacity,
-  ScrollView,
-  Image,
   TextInput,
   FlatList,
+  ActivityIndicator,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
 import TopBar from '../GlobalContainer/TopBar';
 import SideMenu from '../GlobalContainer/SideMenu';
@@ -19,96 +18,115 @@ import Colors from '../Assets/Colors/Colors';
 import { FontFamily } from '../GlobalFont/GlobalFont';
 import LeaveRequestCard from '../GlobalContainer/LeaveRequestCard';
 
-const leaveRequests = [
-  {
-    id: 'LV001',
-    employeeId: 'EMP001',
-    employeeName: 'Rahul Sharma',
-    leaveType: 'Casual Leave',
-    applicationType: 'Full Day',
-    fromDate: '2026-08-12',
-    toDate: '2026-08-12',
-    status: 'Approve',
-    appliedOn: '2026-08-10',
-  },
-  {
-    id: 'LV002',
-    employeeId: 'EMP002',
-    employeeName: 'Priya Das',
-    leaveType: 'Sick Leave',
-    applicationType: 'Half Day',
-    fromDate: '2026-08-08',
-    toDate: '2026-08-08',
-    status: 'Pending',
-    appliedOn: '2026-08-07',
-  },
-  {
-    id: 'LV003',
-    employeeId: 'EMP003',
-    employeeName: 'Ankit Roy',
-    leaveType: 'Restricted Holiday',
-    applicationType: '3 Days Application',
-    fromDate: '2026-08-15',
-    toDate: '2026-08-18',
-    status: 'Pending',
-    appliedOn: '2026-08-12',
-  },
-  {
-    id: 'LV004',
-    employeeId: 'EMP002',
-    employeeName: 'Priya Das',
-    leaveType: 'Sick Leave',
-    applicationType: 'Half Day',
-    fromDate: '2026-09-08',
-    toDate: '2026-09-08',
-    status: 'Pending',
-    appliedOn: '2026-09-08',
-  },
-];
+import {
+  getAllLeaveRequests,
+  LeaveRequestListItem,
+} from '../Services/LeaveRequestService';
 
 const LeaveRequest = () => {
   const [menuVisible, setMenuVisible] = useState(false);
-  const [selectedTab, setSelectedTab] = useState<'All' | 'Approve' | 'Pending'>(
-    'All',
-  );
+
+  const [selectedTab, setSelectedTab] = useState<
+    'All' | 'Approve' | 'Pending' | 'Rejected'
+  >('All');
 
   const [search, setSearch] = useState('');
+
+  const [loading, setLoading] = useState(true);
+
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const [leaveRequests, setLeaveRequests] = useState<LeaveRequestListItem[]>(
+    [],
+  );
+
   const navigation = useNavigation<any>();
 
+  /**
+   * Fetch Leave Requests
+   */
+  const fetchLeaveRequests = useCallback(async (query?: string) => {
+    try {
+      setLoading(true);
+      setErrorMessage('');
+
+      const data = await getAllLeaveRequests(query);
+
+      setLeaveRequests(data);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : 'Unable to load leave requests',
+      );
+
+      setLeaveRequests([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  /**
+   * Reload API every time this screen comes into focus.
+   *
+   * This will execute:
+   * - First time the screen opens
+   * - When navigating away and coming back
+   * - When returning from LeaveRequestDetail
+   * - Whenever this screen becomes active again
+   */
+  useFocusEffect(
+    useCallback(() => {
+      fetchLeaveRequests(search.trim());
+
+      return () => {
+        // Optional cleanup when screen loses focus
+      };
+    }, [fetchLeaveRequests]),
+  );
+
+  /**
+   * Search API
+   *
+   * Do not call this immediately when the page first loads.
+   * The focus effect above handles the initial API call.
+   */
+  useEffect(() => {
+    const trimmedSearch = search.trim();
+
+    // Don't call API again for empty search.
+    // Initial loading is handled by useFocusEffect.
+    if (trimmedSearch === '') {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      fetchLeaveRequests(trimmedSearch);
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [search, fetchLeaveRequests]);
+
+  /**
+   * Filter by selected tab
+   */
   const filteredData = useMemo(() => {
     return leaveRequests.filter(item => {
       const matchStatus = selectedTab === 'All' || item.status === selectedTab;
 
-      const matchSearch = item.employeeName
-        .toLowerCase()
-        .includes(search.toLowerCase());
-
-      return matchStatus && matchSearch;
+      return matchStatus;
     });
-  }, [selectedTab, search]);
+  }, [selectedTab, leaveRequests]);
 
   return (
     <View style={styles.container}>
-      {/* ------------------------------------------------
-          Top Bar
-      ------------------------------------------------ */}
-
       <TopBar
         title="Leave Request"
         onMenuPress={() => setMenuVisible(prev => !prev)}
       />
 
-      {/* ------------------------------------------------
-          Content
-      ------------------------------------------------ */}
-
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.contentContainer}
-        showsVerticalScrollIndicator={false}
-      >
+      <View style={styles.mainContent}>
         {/* Search */}
-
         <TextInput
           placeholder="Search Employee..."
           placeholderTextColor={Colors.textSecondary}
@@ -118,9 +136,8 @@ const LeaveRequest = () => {
         />
 
         {/* Tabs */}
-
         <View style={styles.tabContainer}>
-          {['All', 'Approve', 'Pending'].map(tab => {
+          {['All', 'Approve', 'Pending', 'Rejected'].map(tab => {
             const selected = selectedTab === tab;
 
             return (
@@ -139,48 +156,67 @@ const LeaveRequest = () => {
           })}
         </View>
 
-        {/* List */}
+        {/* Content */}
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={Colors.primary} />
+          </View>
+        ) : errorMessage ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyTitle}>Unable to Load Requests</Text>
 
-        <FlatList
-          data={filteredData}
-          keyExtractor={item => item.id.toString()}
-          renderItem={({ item }) => (
-            <LeaveRequestCard
-              item={item}
-              onPress={item => {
-                navigation.navigate('LeaveRequestDetail', {
-                  id: item.id,
-                });
-              }}
-            />
-          )}
-        />
-      </ScrollView>
+            <Text style={styles.emptyText}>{errorMessage}</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={filteredData}
+            keyExtractor={item => item.id.toString()}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            renderItem={({ item }) => {
+              const detailItem = {
+                ...item,
+                employeeName: item.employeeName || 'N/A',
+                designation: item.designation || 'N/A',
+                leaveType: item.leaveType || 'N/A',
+                no_of_days: item.no_of_days ?? 0,
+                duration: item.duration || 'N/A',
+                reason: item.reason || 'N/A',
+              };
 
-      {/* ------------------------------------------------
-          Bottom Bar
-      ------------------------------------------------ */}
+              return (
+                <LeaveRequestCard
+                  item={item}
+                  onPress={() => {
+                    navigation.navigate('LeaveRequestDetail', detailItem);
+                  }}
+                />
+              );
+            }}
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyTitle}>No Leave Requests</Text>
 
-      {/* <BottomBar selected={2} /> */}
-
-      {/* ------------------------------------------------
-          Side Menu
-      ------------------------------------------------ */}
+                <Text style={styles.emptyText}>No leave requests found.</Text>
+              </View>
+            }
+          />
+        )}
+      </View>
 
       <SideMenu
         visible={menuVisible}
         selected="Leave Requests"
         onClose={() => setMenuVisible(false)}
       />
+
+      <BottomBar />
     </View>
   );
 };
 
 export default LeaveRequest;
-
-/* =====================================================
-   Styles
-===================================================== */
 
 const styles = StyleSheet.create({
   container: {
@@ -188,31 +224,11 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
 
-  scrollView: {
+  mainContent: {
     flex: 1,
-  },
-
-  contentContainer: {
     paddingHorizontal: 16,
     paddingTop: 18,
-    paddingBottom: 25,
-  },
-
-  /* ---------------------------------------------------
-      Page Header
-    --------------------------------------------------- */
-
-  pageTitle: {
-    fontSize: 23,
-    fontFamily: FontFamily.bold,
-    color: Colors.text,
-  },
-
-  pageSubtitle: {
-    marginTop: 4,
-    fontSize: 13,
-    fontFamily: FontFamily.regular,
-    color: Colors.textSecondary,
+    paddingBottom: 12,
   },
 
   searchInput: {
@@ -227,7 +243,7 @@ const styles = StyleSheet.create({
   tabContainer: {
     flexDirection: 'row',
     marginTop: 18,
-    marginBottom: 20,
+    marginBottom: 16,
     backgroundColor: '#EAF3FB',
     borderRadius: 14,
     padding: 4,
@@ -252,5 +268,36 @@ const styles = StyleSheet.create({
   selectedTabText: {
     color: Colors.primary,
     fontFamily: FontFamily.bold,
+  },
+
+  listContent: {
+    paddingBottom: 18,
+    flexGrow: 1,
+  },
+
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+
+  emptyTitle: {
+    fontSize: 18,
+    fontFamily: FontFamily.semiBold,
+    color: Colors.text,
+  },
+
+  emptyText: {
+    marginTop: 8,
+    textAlign: 'center',
+    color: Colors.textSecondary,
+    fontFamily: FontFamily.regular,
   },
 });

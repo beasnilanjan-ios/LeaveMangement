@@ -4,14 +4,6 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Colors from '../Assets/Colors/Colors';
 import { FontFamily } from '../GlobalFont/GlobalFont';
 
-const formatDate = (date: string) => {
-  return new Date(date).toLocaleDateString('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-  });
-};
-
 type Props = {
   item: any;
   onPress: (item: any) => void;
@@ -19,6 +11,36 @@ type Props = {
 
 const LeaveRequestCard = ({ item, onPress }: Props) => {
   const approved = item.status === 'Approve';
+  const rejected = item.status === 'Rejected';
+
+  const badgeBackground = approved
+    ? Colors.successLight
+    : rejected
+    ? Colors.rejectedLight
+    : Colors.pendingLight;
+
+  const badgeTextColor = approved
+    ? Colors.success
+    : rejected
+    ? Colors.rejected
+    : Colors.pending;
+
+  const formatDate = (value?: string) => {
+    if (!value) {
+      return '';
+    }
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
 
   return (
     <TouchableOpacity
@@ -27,31 +49,12 @@ const LeaveRequestCard = ({ item, onPress }: Props) => {
       onPress={() => onPress(item)}
     >
       <View style={styles.header}>
-        <View style={{ flex: 1, alignSelf: 'center' }}>
+        <View style={styles.headerContent}>
           <Text style={styles.employeeName}>{item.employeeName}</Text>
-
-          {/* <Text style={styles.employeeId}>
-            {item.employeeId}
-          </Text> */}
         </View>
 
-        <View
-          style={[
-            styles.badge,
-            {
-              backgroundColor: approved
-                ? Colors.successLight
-                : Colors.pendingLight,
-            },
-          ]}
-        >
-          <Text
-            style={{
-              color: approved ? Colors.success : Colors.pending,
-              fontSize: 12,
-              fontFamily: FontFamily.semiBold,
-            }}
-          >
+        <View style={[styles.badge, { backgroundColor: badgeBackground }]}>
+          <Text style={[styles.badgeText, { color: badgeTextColor }]}>
             {item.status}
           </Text>
         </View>
@@ -62,11 +65,12 @@ const LeaveRequestCard = ({ item, onPress }: Props) => {
         {item.fromDate !== item.toDate && ` - ${formatDate(item.toDate)}`}
       </Text>
 
-      <Text style={styles.leaveType}>{item.leaveType}</Text>
+      {item.is_restricted === 1 && (
+        <Text style={styles.leaveType}>{item.leaveType}</Text>
+      )}
 
       <View style={styles.footer}>
         <Text style={styles.application}>{item.applicationType}</Text>
-
         <Text style={styles.arrow}>›</Text>
       </View>
     </TouchableOpacity>
@@ -87,6 +91,12 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+
+  headerContent: {
+    flex: 1,
+    alignSelf: 'center',
   },
 
   employeeName: {
@@ -95,15 +105,15 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
 
-  employeeId: {
-    marginTop: 3,
-    color: Colors.textSecondary,
-  },
-
   badge: {
     paddingHorizontal: 11,
     paddingVertical: 6,
     borderRadius: 7,
+  },
+
+  badgeText: {
+    fontSize: 12,
+    fontFamily: FontFamily.semiBold,
   },
 
   date: {
