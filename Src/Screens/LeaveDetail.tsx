@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -8,16 +8,16 @@ import {
   FlatList,
   ActivityIndicator,
 } from 'react-native';
-import {useRoute, useNavigation} from '@react-navigation/native';
-import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import { useRoute, useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import {RootStackParamList} from '../Navigation/AppNavigator';
+import { RootStackParamList } from '../Navigation/AppNavigator';
 
 import TopBar from '../GlobalContainer/TopBar';
 import SideMenu from '../GlobalContainer/SideMenu';
 
 import Colors from '../Assets/Colors/Colors';
-import {FontFamily} from '../GlobalFont/GlobalFont';
+import { FontFamily } from '../GlobalFont/GlobalFont';
 import InfoRow from '../GlobalContainer/InfoRow';
 import ApprovalItem from '../GlobalContainer/ApprovalItem';
 
@@ -25,15 +25,6 @@ import {
   getLeaveDetails,
   LeaveDetailsDataModel,
 } from '../Services/LeaveDetailsService';
-
-type LeaveDetailNavigationProp = NativeStackNavigationProp<
-  RootStackParamList,
-  'LeaveDetail'
->;
-
-type LeaveDetailRouteProp = {
-  params: RootStackParamList['LeaveDetail'];
-};
 
 const formatDate = (date: string) => {
   if (!date) {
@@ -90,8 +81,9 @@ const LeaveDetail = () => {
 
   const [menuVisible, setMenuVisible] = useState(false);
 
-  const [leaveData, setLeaveData] =
-    useState<LeaveDetailsDataModel | null>(null);
+  const [leaveData, setLeaveData] = useState<LeaveDetailsDataModel | null>(
+    null,
+  );
 
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -99,7 +91,7 @@ const LeaveDetail = () => {
   /*
    * ID coming from Leave List screen
    */
-  const {id} = route.params;
+  const { id } = route.params;
 
   console.log('LeaveDetail params:', route.params);
 
@@ -117,9 +109,7 @@ const LeaveDetail = () => {
       setLeaveData(data);
     } catch (error) {
       setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : 'Unable to load leave details',
+        error instanceof Error ? error.message : 'Unable to load leave details',
       );
     } finally {
       setLoading(false);
@@ -150,14 +140,9 @@ const LeaveDetail = () => {
         />
 
         <View style={styles.centerContainer}>
-          <ActivityIndicator
-            size="large"
-            color={Colors.primary}
-          />
+          <ActivityIndicator size="large" color={Colors.primary} />
 
-          <Text style={styles.loadingText}>
-            Loading leave details...
-          </Text>
+          <Text style={styles.loadingText}>Loading leave details...</Text>
         </View>
 
         <SideMenu
@@ -183,16 +168,13 @@ const LeaveDetail = () => {
         />
 
         <View style={styles.centerContainer}>
-          <Text style={styles.errorText}>
-            {errorMessage}
-          </Text>
+          <Text style={styles.errorText}>{errorMessage}</Text>
 
           <TouchableOpacity
             style={styles.retryButton}
-            onPress={() => fetchLeaveDetails(id)}>
-            <Text style={styles.retryButtonText}>
-              Retry
-            </Text>
+            onPress={() => fetchLeaveDetails(id)}
+          >
+            <Text style={styles.retryButtonText}>Retry</Text>
           </TouchableOpacity>
         </View>
 
@@ -219,9 +201,7 @@ const LeaveDetail = () => {
         />
 
         <View style={styles.centerContainer}>
-          <Text style={styles.errorText}>
-            No leave details found.
-          </Text>
+          <Text style={styles.errorText}>No leave details found.</Text>
         </View>
 
         <SideMenu
@@ -243,7 +223,6 @@ const LeaveDetail = () => {
 
   return (
     <View style={styles.container}>
-
       {/* ------------------------------------------------
           Top Bar
       ------------------------------------------------ */}
@@ -261,52 +240,42 @@ const LeaveDetail = () => {
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
-        showsVerticalScrollIndicator={false}>
-
+        showsVerticalScrollIndicator={false}
+      >
         {/* =====================================================
             Header Card
         ===================================================== */}
 
         <View style={styles.headerCard}>
-
           <View style={styles.headerRow}>
-
-            <Text style={styles.leaveTitle}>
-              {leave.leaveType}
-            </Text>
+            <Text style={styles.leaveTitle}>{leave.leaveType}</Text>
 
             <View
               style={[
                 styles.statusBadge,
                 {
-                  backgroundColor:
-                    statusStyle.backgroundColor,
+                  backgroundColor: statusStyle.backgroundColor,
                 },
-              ]}>
-
+              ]}
+            >
               <Text
                 style={[
                   styles.statusText,
                   {
                     color: statusStyle.color,
                   },
-                ]}>
+                ]}
+              >
                 {leave.status}
               </Text>
-
             </View>
-
           </View>
 
           <Text style={styles.headerDate}>
-            {formatDate(leave.fromDate)} -{' '}
-            {formatDate(leave.toDate)}
+            {formatDate(leave.fromDate)} - {formatDate(leave.toDate)}
           </Text>
 
-          <Text style={styles.totalDay}>
-            {leave.totalDays} Days
-          </Text>
-
+          <Text style={styles.totalDay}>{leave.totalDays} Days</Text>
         </View>
 
         {/* =====================================================
@@ -314,24 +283,13 @@ const LeaveDetail = () => {
         ===================================================== */}
 
         <View style={styles.section}>
-
-          <Text style={styles.sectionTitle}>
-            Leave Information
-          </Text>
+          <Text style={styles.sectionTitle}>Leave Information</Text>
 
           <View style={styles.infoCard}>
-
             <View style={styles.card}>
+              <InfoRow label="Leave Type" value={leave.leaveType} />
 
-              <InfoRow
-                label="Leave Type"
-                value={leave.leaveType}
-              />
-
-              <InfoRow
-                label="Application"
-                value={leave.applicationType}
-              />
+              <InfoRow label="Application" value={leave.applicationType} />
 
               <InfoRow
                 label="Status"
@@ -339,31 +297,19 @@ const LeaveDetail = () => {
                 valueColor={statusStyle.color}
               />
 
-              <InfoRow
-                label="From Date"
-                value={formatDate(leave.fromDate)}
-              />
+              <InfoRow label="From Date" value={formatDate(leave.fromDate)} />
 
-              <InfoRow
-                label="To Date"
-                value={formatDate(leave.toDate)}
-              />
+              <InfoRow label="To Date" value={formatDate(leave.toDate)} />
 
-              <InfoRow
-                label="Applied On"
-                value={formatDate(leave.appliedOn)}
-              />
+              <InfoRow label="Applied On" value={formatDate(leave.appliedOn)} />
 
               <InfoRow
                 label="Total Days"
                 value={`${leave.totalDays} Days`}
                 valueColor={Colors.primary}
               />
-
             </View>
-
           </View>
-
         </View>
 
         {/* =====================================================
@@ -371,19 +317,13 @@ const LeaveDetail = () => {
         ===================================================== */}
 
         <View style={styles.section}>
-
-          <Text style={styles.sectionTitle}>
-            Reason
-          </Text>
+          <Text style={styles.sectionTitle}>Reason</Text>
 
           <View style={styles.infoCard}>
-
             <Text style={styles.reasonText}>
               {leave.reason || 'No reason provided'}
             </Text>
-
           </View>
-
         </View>
 
         {/* =====================================================
@@ -392,19 +332,11 @@ const LeaveDetail = () => {
 
         {leave.rejectionReason ? (
           <View style={styles.section}>
-
-            <Text style={styles.sectionTitle}>
-              Rejection Reason
-            </Text>
+            <Text style={styles.sectionTitle}>Rejection Reason</Text>
 
             <View style={styles.infoCard}>
-
-              <Text style={styles.reasonText}>
-                {leave.rejectionReason}
-              </Text>
-
+              <Text style={styles.reasonText}>{leave.rejectionReason}</Text>
             </View>
-
           </View>
         ) : null}
 
@@ -413,54 +345,35 @@ const LeaveDetail = () => {
         ===================================================== */}
 
         <View style={styles.section}>
-
-          <Text style={styles.sectionTitle}>
-            Approval Flow
-          </Text>
+          <Text style={styles.sectionTitle}>Approval Flow</Text>
 
           <View style={styles.infoCard}>
-
             <View style={styles.card}>
-
-              <Text style={styles.sectionTitle}>
-                Approval Timeline
-              </Text>
+              <Text style={styles.sectionTitle}>Approval Timeline</Text>
 
               <FlatList
                 data={leave.approvals}
-                keyExtractor={item =>
-                  item.id.toString()
-                }
+                keyExtractor={item => item.id.toString()}
                 scrollEnabled={false}
-                renderItem={({item}) => (
+                renderItem={({ item }) => (
                   <ApprovalItem
                     name={item.name}
                     designation={item.designation}
                     approved={
-                      item.status?.toLowerCase() ===
-                        'approved' ||
-                      item.status?.toLowerCase() ===
-                        'approve'
+                      item.status?.toLowerCase() === 'approved' ||
+                      item.status?.toLowerCase() === 'approve'
                     }
-                    pending={
-                      item.status?.toLowerCase() ===
-                      'pending'
-                    }
+                    pending={item.status?.toLowerCase() === 'pending'}
                     rejected={
-                      item.status?.toLowerCase() ===
-                        'rejected' ||
-                      item.status?.toLowerCase() ===
-                        'reject'
+                      item.status?.toLowerCase() === 'rejected' ||
+                      item.status?.toLowerCase() === 'reject'
                     }
                     date={item.date}
                   />
                 )}
               />
-
             </View>
-
           </View>
-
         </View>
 
         {/* =====================================================
@@ -468,31 +381,19 @@ const LeaveDetail = () => {
         ===================================================== */}
 
         <View style={styles.section}>
-
-          <Text style={styles.sectionTitle}>
-            Request Information
-          </Text>
+          <Text style={styles.sectionTitle}>Request Information</Text>
 
           <View style={styles.infoCard}>
+            <InfoRow label="Request ID" value={leave.id.toString()} />
 
-            <InfoRow
-              label="Request ID"
-              value={leave.id.toString()}
-            />
-
-            <InfoRow
-              label="Applied On"
-              value={formatDate(leave.appliedOn)}
-            />
+            <InfoRow label="Applied On" value={formatDate(leave.appliedOn)} />
 
             <InfoRow
               label="Balance Leave"
               value={`${leaveData.earnedLeave}`}
               valueColor={Colors.primary}
             />
-
           </View>
-
         </View>
 
         {/* =====================================================
@@ -501,14 +402,10 @@ const LeaveDetail = () => {
 
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => navigation.goBack()}>
-
-          <Text style={styles.backButtonText}>
-            Back
-          </Text>
-
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.backButtonText}>Back</Text>
         </TouchableOpacity>
-
       </ScrollView>
 
       {/* ------------------------------------------------
@@ -520,7 +417,6 @@ const LeaveDetail = () => {
         selected="Leave Detail"
         onClose={() => setMenuVisible(false)}
       />
-
     </View>
   );
 };

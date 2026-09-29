@@ -1,13 +1,8 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
 import Colors from '../Assets/Colors/Colors';
-import {FontFamily} from '../GlobalFont/GlobalFont';
+import { FontFamily } from '../GlobalFont/GlobalFont';
 
 const formatDate = (date: string) => {
   return new Date(date).toLocaleDateString('en-US', {
@@ -22,27 +17,22 @@ type Props = {
   onPress: (item: any) => void;
 };
 
-const LeaveRequestCard = ({item, onPress}: Props) => {
-
+const LeaveRequestCard = ({ item, onPress }: Props) => {
   const approved = item.status === 'Approve';
 
   return (
     <TouchableOpacity
       activeOpacity={0.8}
       style={styles.card}
-      onPress={() => onPress(item)}>
-
+      onPress={() => onPress(item)}
+    >
       <View style={styles.header}>
-
-        <View style={{flex: 1, alignSelf:'center'}}>
-          <Text style={styles.employeeName}>
-            {item.employeeName}
-          </Text>
+        <View style={{ flex: 1, alignSelf: 'center' }}>
+          <Text style={styles.employeeName}>{item.employeeName}</Text>
 
           {/* <Text style={styles.employeeId}>
             {item.employeeId}
           </Text> */}
-
         </View>
 
         <View
@@ -53,43 +43,32 @@ const LeaveRequestCard = ({item, onPress}: Props) => {
                 ? Colors.successLight
                 : Colors.pendingLight,
             },
-          ]}>
-
+          ]}
+        >
           <Text
             style={{
-              color: approved
-                ? Colors.success
-                : Colors.pending,
+              color: approved ? Colors.success : Colors.pending,
               fontSize: 12,
               fontFamily: FontFamily.semiBold,
-            }}>
+            }}
+          >
             {item.status}
           </Text>
-
         </View>
-
       </View>
 
       <Text style={styles.date}>
         {formatDate(item.fromDate)}
-          {item.fromDate !== item.toDate &&
-            ` - ${formatDate(item.toDate)}`}
+        {item.fromDate !== item.toDate && ` - ${formatDate(item.toDate)}`}
       </Text>
 
-      <Text style={styles.leaveType}>
-        {item.leaveType}
-      </Text>
+      <Text style={styles.leaveType}>{item.leaveType}</Text>
 
       <View style={styles.footer}>
-
-        <Text style={styles.application}>
-          {item.applicationType}
-        </Text>
+        <Text style={styles.application}>{item.applicationType}</Text>
 
         <Text style={styles.arrow}>›</Text>
-
       </View>
-
     </TouchableOpacity>
   );
 };
@@ -148,7 +127,7 @@ const styles = StyleSheet.create({
 
   application: {
     color: Colors.textSecondary,
-    marginTop: 10
+    marginTop: 10,
   },
 
   arrow: {

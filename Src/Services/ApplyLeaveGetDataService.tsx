@@ -42,6 +42,14 @@ export interface ApplyLeaveResponseJson {
   data?: ApplyLeaveDataJson;
 }
 
+export interface SubmitLeaveRequestJson {
+  success: boolean | string;
+  message: string;
+  data?: {
+    id: number;
+  };
+}
+
 /* ============================================================
    LEAVE BALANCE MODEL
 ============================================================ */
@@ -102,9 +110,7 @@ export class ApplyLeaveHolidayModel {
     this.restricted = restricted;
   }
 
-  static fromJson(
-    json: ApplyLeaveHolidayJson,
-  ): ApplyLeaveHolidayModel {
+  static fromJson(json: ApplyLeaveHolidayJson): ApplyLeaveHolidayModel {
     return new ApplyLeaveHolidayModel({
       date: json.date,
       name: json.name,
@@ -121,20 +127,12 @@ export class ExistingLeaveModel {
   from_date: string;
   to_date: string;
 
-  constructor({
-    from_date,
-    to_date,
-  }: {
-    from_date: string;
-    to_date: string;
-  }) {
+  constructor({ from_date, to_date }: { from_date: string; to_date: string }) {
     this.from_date = from_date;
     this.to_date = to_date;
   }
 
-  static fromJson(
-    json: ExistingLeaveJson,
-  ): ExistingLeaveModel {
+  static fromJson(json: ExistingLeaveJson): ExistingLeaveModel {
     return new ExistingLeaveModel({
       from_date: json.from_date,
       to_date: json.to_date,
@@ -169,9 +167,7 @@ export class LeaveAuthorityModel {
     this.designation = designation;
   }
 
-  static fromJson(
-    json: LeaveAuthorityJson,
-  ): LeaveAuthorityModel {
+  static fromJson(json: LeaveAuthorityJson): LeaveAuthorityModel {
     return new LeaveAuthorityModel({
       id: Number(json.id),
       employee_id: Number(json.employee_id),
@@ -208,13 +204,9 @@ export class ApplyLeaveDataModel {
     this.leave = leave;
   }
 
-  static fromJson(
-    json: ApplyLeaveDataJson,
-  ): ApplyLeaveDataModel {
+  static fromJson(json: ApplyLeaveDataJson): ApplyLeaveDataModel {
     return new ApplyLeaveDataModel({
-      leaveBalance: LeaveBalanceModel.fromJson(
-        json.leaveBalance,
-      ),
+      leaveBalance: LeaveBalanceModel.fromJson(json.leaveBalance),
 
       holidays: (json.holidays ?? []).map(item =>
         ApplyLeaveHolidayModel.fromJson(item),
@@ -224,9 +216,7 @@ export class ApplyLeaveDataModel {
         LeaveAuthorityModel.fromJson(item),
       ),
 
-      leave: (json.leave ?? []).map(item =>
-        ExistingLeaveModel.fromJson(item),
-      ),
+      leave: (json.leave ?? []).map(item => ExistingLeaveModel.fromJson(item)),
     });
   }
 }
@@ -235,39 +225,41 @@ export class ApplyLeaveDataModel {
    GET APPLY LEAVE META
 ============================================================ */
 
-export const getApplyLeaveMeta =
-  async (): Promise<ApplyLeaveDataModel> => {
-    const json =
-      await RestApi.get<ApplyLeaveResponseJson>(
-        '/api/leaves/apply-meta',
-      );
+export const getApplyLeaveMeta = async (): Promise<ApplyLeaveDataModel> => {
+  const json = await RestApi.get<ApplyLeaveResponseJson>(
+    '/api/leaves/apply-meta',
+  );
 
-    if (!json) {
-      throw new Error(
-        'Unable to load leave details',
-      );
-    }
+  if (!json) {
+    throw new Error('Unable to load leave details');
+  }
 
-    if (
-      !(
-        json.success === true ||
-        json.success === 'true'
-      )
-    ) {
-      throw new Error(
-        json.message ||
-          'Unable to load leave details',
-      );
-    }
+  if (!(json.success === true || json.success === 'true')) {
+    throw new Error(json.message || 'Unable to load leave details');
+  }
 
-    if (!json.data) {
-      throw new Error(
-        json.message ||
-          'Leave data not found',
-      );
-    }
+  if (!json.data) {
+    throw new Error(json.message || 'Leave data not found');
+  }
 
-    return ApplyLeaveDataModel.fromJson(
-      json.data,
-    );
-  };
+  return ApplyLeaveDataModel.fromJson(json.data);
+};
+
+export const submitLeaveRequest = async (
+  payload: Record<string, any>,
+): Promise<SubmitLeaveRequestJson> => {
+  const json = await RestApi.post<SubmitLeaveRequestJson>(
+    '/api/leaves/apply',
+    payload,
+  );
+
+  if (!json) {
+    throw new Error('Unable to submit leave request');
+  }
+
+  if (!(json.success === true || json.success === 'true')) {
+    throw new Error(json.message || 'Unable to submit leave request');
+  }
+
+  return json;
+};

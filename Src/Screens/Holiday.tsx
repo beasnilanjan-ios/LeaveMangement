@@ -218,8 +218,8 @@ const Holiday = () => {
                 >
                   {/* <Text style={styles.arrow}>›</Text> */}
                   <View style={styles.cardArrowContainer}>
-                      <Text style={styles.cardArrow}>›</Text>
-                    </View>
+                    <Text style={styles.cardArrow}>›</Text>
+                  </View>
                 </TouchableOpacity>
               )}
             </View>
@@ -724,27 +724,27 @@ const styles = StyleSheet.create({
   --------------------------------------------------- */
 
   cardArrowContainer: {
-  width: 30,
-  height: 30,
+    width: 30,
+    height: 30,
 
-  borderRadius: 15,
+    borderRadius: 15,
 
-  backgroundColor: Colors.background,
+    backgroundColor: Colors.background,
 
-  justifyContent: 'center',
-  alignItems: 'center',
-},
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 
-cardArrow: {
-  fontSize: 25,
-  lineHeight: 30,
+  cardArrow: {
+    fontSize: 25,
+    lineHeight: 30,
 
-  fontFamily: FontFamily.regular,
+    fontFamily: FontFamily.regular,
 
-  color: Colors.textSecondary,
+    color: Colors.textSecondary,
 
-  textAlign: 'center',
-},
+    textAlign: 'center',
+  },
 
   /* ---------------------------------------------------
      Empty

@@ -20,6 +20,25 @@ import { FontFamily } from '../GlobalFont/GlobalFont';
 import { RootStackParamList } from '../Navigation/AppNavigator';
 import EmployeeCard from '../GlobalContainer/EmployeeCard';
 
+const formatDate = (date: string) => {
+  const d = new Date(date);
+
+  return d.toLocaleDateString('en-US', {
+    weekday: 'short',
+    day: '2-digit',
+    month: 'short',
+  });
+};
+
+const getMonthName = (date: string) => {
+  const d = new Date(date);
+
+  return d.toLocaleDateString('en-US', {
+    month: 'long',
+    year: 'numeric',
+  });
+};
+
 type EmployeeLeaveHistoryRouteProp = RouteProp<
   RootStackParamList,
   'EmployeeLeaveHistory'
@@ -106,34 +125,14 @@ const dashboardData = {
   ],
 };
 
-const formatDate = (date: string) => {
-  const d = new Date(date);
-
-  return d.toLocaleDateString('en-US', {
-    weekday: 'short',
-    day: '2-digit',
-    month: 'short',
-  });
-};
-
-const getMonthName = (date: string) => {
-  const d = new Date(date);
-
-  return d.toLocaleDateString('en-US', {
-    month: 'long',
-    year: 'numeric',
-  });
-};
-
 const EmployeeLeaveHistory = () => {
   const route = useRoute<EmployeeLeaveHistoryRouteProp>();
-   const { employeeId } =
-    route.params;
+  const { employeeId } = route.params;
   const [selectedTab, setSelectedTab] = useState('All');
 
   const navigation = useNavigation<EmployeeLeaveHistoryNavigationProp>();
 
-   /* -----------------------------------------
+  /* -----------------------------------------
      Filter
   ----------------------------------------- */
 
@@ -231,200 +230,197 @@ const EmployeeLeaveHistory = () => {
       />
 
       {/* Content */}
-       <ScrollView
+      <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
       >
-          {/* Your Leave Detail UI */}
-          {/* Employee Card */}
-            <View style={styles.employeeCard}>
-              <Text style={styles.employeeName}>
-                {dashboardData.employee.name}
-              </Text>
+        {/* Your Leave Detail UI */}
+        {/* Employee Card */}
+        <View style={styles.employeeCard}>
+          <Text style={styles.employeeName}>{dashboardData.employee.name}</Text>
 
-               <Text style={styles.employeeId}>
-                {'Employee id: ' + dashboardData.employee.id}
-              </Text>
+          <Text style={styles.employeeId}>
+            {'Employee id: ' + dashboardData.employee.id}
+          </Text>
 
-              <Text style={styles.employeeDesignation}>
-                {dashboardData.employee.designation}
-              </Text>
-            </View>
-            
+          <Text style={styles.employeeDesignation}>
+            {dashboardData.employee.designation}
+          </Text>
+        </View>
 
-             <View style={styles.summaryContainer}>
-                {/* Total Leave */}
+        <View style={styles.summaryContainer}>
+          {/* Total Leave */}
 
-                <View style={styles.summaryCard}>
-                  <Text style={styles.summaryTitle}>Total Leave</Text>
+          <View style={styles.summaryCard}>
+            <Text style={styles.summaryTitle}>Total Leave</Text>
 
-                  <Text
-                    style={[
-                      styles.summaryValue,
-                      {
-                        color: Colors.primary,
-                      },
-                    ]}
-                  >
-                    {dashboardData.leaveSummary.totalLeave}
-                  </Text>
-                </View>
+            <Text
+              style={[
+                styles.summaryValue,
+                {
+                  color: Colors.primary,
+                },
+              ]}
+            >
+              {dashboardData.leaveSummary.totalLeave}
+            </Text>
+          </View>
 
-                {/* Balance Leave */}
+          {/* Balance Leave */}
 
-                <View style={styles.summaryCard}>
-                  <Text style={styles.summaryTitle}>Balance Leave</Text>
+          <View style={styles.summaryCard}>
+            <Text style={styles.summaryTitle}>Balance Leave</Text>
 
-                  <Text
-                    style={[
-                      styles.summaryValue,
-                      {
-                        color: Colors.success,
-                      },
-                    ]}
-                  >
-                    {dashboardData.leaveSummary.balanceLeave}
-                  </Text>
-                </View>
+            <Text
+              style={[
+                styles.summaryValue,
+                {
+                  color: Colors.success,
+                },
+              ]}
+            >
+              {dashboardData.leaveSummary.balanceLeave}
+            </Text>
+          </View>
 
-                {/* Early Leave */}
+          {/* Early Leave */}
 
-                <View style={styles.summaryCard}>
-                  <Text style={styles.summaryTitle}>Early Leave</Text>
+          <View style={styles.summaryCard}>
+            <Text style={styles.summaryTitle}>Early Leave</Text>
 
-                  <Text
-                    style={[
-                      styles.summaryValue,
-                      {
-                        color: Colors.accent,
-                      },
-                    ]}
-                  >
-                    {dashboardData.leaveSummary.earlyLeave}
-                  </Text>
-                </View>
-              </View>
+            <Text
+              style={[
+                styles.summaryValue,
+                {
+                  color: Colors.accent,
+                },
+              ]}
+            >
+              {dashboardData.leaveSummary.earlyLeave}
+            </Text>
+          </View>
+        </View>
 
-              {/* =====================================
+        {/* =====================================
                   FILTER TABS
               ===================================== */}
 
-              <View style={styles.tabsContainer}>
-                {['All', 'Approve', 'Pending'].map(tab => {
-                  const active = selectedTab === tab;
+        <View style={styles.tabsContainer}>
+          {['All', 'Approve', 'Pending'].map(tab => {
+            const active = selectedTab === tab;
 
-                  return (
-                    <TouchableOpacity
-                      key={tab}
-                      style={[styles.tab, active && styles.activeTab]}
-                      onPress={() => setSelectedTab(tab)}
-                      activeOpacity={0.8}
-                    >
-                      <Text style={[styles.tabText, active && styles.activeTabText]}>
-                        {tab}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
+            return (
+              <TouchableOpacity
+                key={tab}
+                style={[styles.tab, active && styles.activeTab]}
+                onPress={() => setSelectedTab(tab)}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.tabText, active && styles.activeTabText]}>
+                  {tab}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
 
-              {/* =====================================
+        {/* =====================================
                   LEAVE LIST
               ===================================== */}
 
-              {Object.keys(groupedLeaves).map(month => (
-                <View key={month}>
-                  <Text style={styles.monthTitle}>{month}</Text>
+        {Object.keys(groupedLeaves).map(month => (
+          <View key={month}>
+            <Text style={styles.monthTitle}>{month}</Text>
 
-                  {groupedLeaves[month].map(item => {
-                    const statusStyle = getStatusStyle(item.status);
+            {groupedLeaves[month].map(item => {
+              const statusStyle = getStatusStyle(item.status);
 
-                    const leaveColor = getLeaveColor(item.type);
+              const leaveColor = getLeaveColor(item.type);
 
-                    return (
-                      <TouchableOpacity
-                        key={item.id}
-                        style={styles.leaveCard}
-                        activeOpacity={0.8}
-                        onPress={() =>
-                          navigation.navigate('LeaveDetail', {
-                            id: item.id,
-                            type: item.type,
-                            applicationType: item.applicationType,
-                            fromDate: item.fromDate,
-                            toDate: item.toDate,
-                            status: item.status,
-                            reason: item.reason,
-                          })
-                        }
+              return (
+                <TouchableOpacity
+                  key={item.id}
+                  style={styles.leaveCard}
+                  activeOpacity={0.8}
+                  onPress={() =>
+                    navigation.navigate('LeaveDetail', {
+                      id: item.id,
+                      type: item.type,
+                      applicationType: item.applicationType,
+                      fromDate: item.fromDate,
+                      toDate: item.toDate,
+                      status: item.status,
+                      reason: item.reason,
+                    })
+                  }
+                >
+                  {/* Top */}
+
+                  <View style={styles.cardTopRow}>
+                    <Text style={styles.applicationType}>
+                      {item.applicationType}
+                    </Text>
+
+                    <View
+                      style={[
+                        styles.statusBadge,
+                        {
+                          backgroundColor: statusStyle.backgroundColor,
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.statusText,
+                          {
+                            color: statusStyle.color,
+                          },
+                        ]}
                       >
-                        {/* Top */}
+                        {item.status}
+                      </Text>
+                    </View>
+                  </View>
 
-                        <View style={styles.cardTopRow}>
-                          <Text style={styles.applicationType}>
-                            {item.applicationType}
-                          </Text>
+                  {/* Date */}
 
-                          <View
-                            style={[
-                              styles.statusBadge,
-                              {
-                                backgroundColor: statusStyle.backgroundColor,
-                              },
-                            ]}
-                          >
-                            <Text
-                              style={[
-                                styles.statusText,
-                                {
-                                  color: statusStyle.color,
-                                },
-                              ]}
-                            >
-                              {item.status}
-                            </Text>
-                          </View>
-                        </View>
+                  <Text style={styles.dateText}>
+                    {formatDate(item.fromDate)}
 
-                        {/* Date */}
+                    {item.fromDate !== item.toDate &&
+                      ` - ${formatDate(item.toDate)}`}
+                  </Text>
 
-                        <Text style={styles.dateText}>
-                          {formatDate(item.fromDate)}
+                  {/* Bottom */}
 
-                          {item.fromDate !== item.toDate &&
-                            ` - ${formatDate(item.toDate)}`}
-                        </Text>
+                  <View style={styles.cardBottomRow}>
+                    <Text
+                      style={[
+                        styles.leaveType,
+                        {
+                          color: leaveColor,
+                        },
+                      ]}
+                    >
+                      {item.type}
+                    </Text>
 
-                        {/* Bottom */}
+                    <View style={styles.arrowContainer}>
+                      <Text style={styles.arrow}>›</Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        ))}
 
-                        <View style={styles.cardBottomRow}>
-                          <Text
-                            style={[
-                              styles.leaveType,
-                              {
-                                color: leaveColor,
-                              },
-                            ]}
-                          >
-                            {item.type}
-                          </Text>
-
-                          <View style={styles.arrowContainer}>
-                            <Text style={styles.arrow}>›</Text>
-                          </View>
-                        </View>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              ))}
-
-              {filteredLeaves.length === 0 && (
-                <View style={styles.emptyContainer}>
-                  <Text style={styles.emptyText}>No leave found</Text>
-                </View>
-              )}
-          </ScrollView>
+        {filteredLeaves.length === 0 && (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>No leave found</Text>
+          </View>
+        )}
+      </ScrollView>
     </View>
   );
 };
@@ -466,49 +462,49 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
 
-   employeeCard: {
-  backgroundColor: Colors.white,
-  borderRadius: 14,
-  padding: 18,
-  borderWidth: 1,
-  borderColor: Colors.border,
-  marginBottom: 18,
-},
+  employeeCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 14,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginBottom: 18,
+  },
 
-employeeName: {
-  fontSize: 20,
-  fontFamily: FontFamily.bold,
-  color: Colors.text,
-},
+  employeeName: {
+    fontSize: 20,
+    fontFamily: FontFamily.bold,
+    color: Colors.text,
+  },
 
-employeeId: {
-  marginTop: 4,
-  fontSize: 14,
-  fontFamily: FontFamily.regular,
-  color: Colors.textSecondary,
-},
+  employeeId: {
+    marginTop: 4,
+    fontSize: 14,
+    fontFamily: FontFamily.regular,
+    color: Colors.textSecondary,
+  },
 
-employeeDesignation: {
-  marginTop: 4,
-  fontSize: 12,
-  fontFamily: FontFamily.regular,
-  color: Colors.primary,
-},
+  employeeDesignation: {
+    marginTop: 4,
+    fontSize: 12,
+    fontFamily: FontFamily.regular,
+    color: Colors.primary,
+  },
 
-statusBadge: {
-  alignSelf: 'flex-start',
-  marginTop: 14,
-  paddingHorizontal: 14,
-  paddingVertical: 6,
-  borderRadius: 20,
-},
+  statusBadge: {
+    alignSelf: 'flex-start',
+    marginTop: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
 
-statusText: {
-  fontSize: 13,
-  fontFamily: FontFamily.semiBold,
-},
+  statusText: {
+    fontSize: 13,
+    fontFamily: FontFamily.semiBold,
+  },
 
-summaryContainer: {
+  summaryContainer: {
     flexDirection: 'row',
     gap: 10,
   },

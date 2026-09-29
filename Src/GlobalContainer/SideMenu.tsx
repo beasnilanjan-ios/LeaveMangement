@@ -68,70 +68,78 @@ const SideMenu: React.FC<SideMenuProps> = ({
   selected = 'Home',
   onItemPress,
 }) => {
-type NavigationProp =
-  NativeStackNavigationProp<RootStackParamList>;
+  type NavigationProp =
+    NativeStackNavigationProp<RootStackParamList>;
+
   const navigation = useNavigation<NavigationProp>();
 
   if (!visible) {
     return null;
   }
 
- const user = getCurrentUser();
+  const user = getCurrentUser();
 
- const handleItemPress = (title: string) => {
-  onItemPress?.(title);
+  const visibleMenu = menu.filter(item => {
+    if (item.title === 'Leave Requests') {
+      return user?.role === 'manager';
+    } else if (item.title === 'Employee Leave History') {
+      return user?.role === 'admin';
+    }
 
-  onClose();
+    return true;
+  });
 
-  switch (title) {
-    case 'Home':
-      navigation.navigate('Dashboard');
-      break;
+  const handleItemPress = (title: string) => {
+    onItemPress?.(title);
 
-    case 'Apply Leave':
-      navigation.navigate('ApplyLeave');
-      break;
+    onClose();
 
-    case 'Employee Leave History':
-      navigation.navigate('EmployeeList');
-      break;
+    switch (title) {
+      case 'Home':
+        navigation.navigate('Dashboard');
+        break;
 
-     case 'Leave Requests':
-      navigation.navigate('LeaveRequest');
-      break;  
-  
-     case 'Holiday':
-      navigation.navigate('Holiday');
-      break;
+      case 'Apply Leave':
+        navigation.navigate('ApplyLeave');
+        break;
 
-    case 'Profile':
-      navigation.navigate('Profile');
-      break;
+      case 'Employee Leave History':
+        navigation.navigate('EmployeeList');
+        break;
 
-    case 'Logout':
-      clearCurrentUser();
-      clearCurrentLoginResponse();
-      navigation.replace('Login');
-      break;  
+      case 'Leave Requests':
+        navigation.navigate('LeaveRequest');
+        break;
 
-    default:
-      break;
-  }
-};
+      case 'Holiday':
+        navigation.navigate('Holiday');
+        break;
+
+      case 'Profile':
+        navigation.navigate('Profile');
+        break;
+
+      case 'Logout':
+        clearCurrentUser();
+        clearCurrentLoginResponse();
+        navigation.replace('Login');
+        break;
+
+      default:
+        break;
+    }
+  };
 
   return (
     <View style={styles.overlay}>
 
-      {/* Background */}
       <Pressable
         style={styles.background}
         onPress={onClose}
       />
 
-      {/* Drawer */}
       <View style={styles.drawer}>
 
-        {/* Close */}
         <TouchableOpacity
           style={styles.closeButton}
           onPress={onClose}
@@ -139,7 +147,6 @@ type NavigationProp =
           <Text style={styles.closeText}>×</Text>
         </TouchableOpacity>
 
-        {/* Profile */}
         <View style={styles.profileSection}>
 
           <View style={styles.avatarContainer}>
@@ -162,12 +169,10 @@ type NavigationProp =
 
         </View>
 
-        {/* Divider */}
         <View style={styles.divider} />
 
-        {/* Menu */}
         <View style={styles.menuContainer}>
-          {menu.map(item => {
+          {visibleMenu.map(item => {
             const isSelected = selected === item.title;
 
             return (
@@ -180,7 +185,6 @@ type NavigationProp =
                 activeOpacity={0.7}
                 onPress={() => handleItemPress(item.title)}>
 
-                {/* Selected indicator */}
                 {isSelected && (
                   <View style={styles.selectedIndicator} />
                 )}
