@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  TouchableOpacity,
 } from 'react-native';
 
 import GlobalTextInput from '../GlobalContainer/GlobalTextInput';
@@ -73,6 +74,14 @@ const ForgotPassword = () => {
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#F7F9FC" />
 
+      <TouchableOpacity
+        style={styles.backButton}
+        activeOpacity={0.8}
+        onPress={() => navigation.goBack()}
+      >
+        <Text style={styles.backText}>‹</Text>
+      </TouchableOpacity>
+
       {/* Decorative background shapes */}
       <View style={styles.blueCircleTop} />
       <View style={styles.redCircleTop} />
@@ -132,15 +141,11 @@ const ForgotPassword = () => {
           />
 
           {errorMessage ? (
-            <Text style={styles.errorMessage}>
-              {errorMessage}
-            </Text>
+            <Text style={styles.errorMessage}>{errorMessage}</Text>
           ) : null}
 
           {successMessage ? (
-            <Text style={styles.successMessage}>
-              {successMessage}
-            </Text>
+            <Text style={styles.successMessage}>{successMessage}</Text>
           ) : null}
 
           {/* Reset Button */}
@@ -166,6 +171,31 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+
+  backButton: {
+    position: 'absolute',
+    top: 18,
+    left: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+
+  backText: {
+    fontSize: 30,
+    color: Colors.text,
+    lineHeight: 30,
+    fontFamily: FontFamily.regular,
   },
 
   scrollContent: {
@@ -220,10 +250,6 @@ const styles = StyleSheet.create({
     right: 60,
   },
 
-  /* -------------------------
-     Logo
-  ------------------------- */
-
   logoContainer: {
     width: 145,
     height: 145,
@@ -249,10 +275,6 @@ const styles = StyleSheet.create({
     height: 115,
   },
 
-  /* -------------------------
-     Heading
-  ------------------------- */
-
   title: {
     fontSize: 27,
     fontFamily: FontFamily.semiBold,
@@ -267,10 +289,6 @@ const styles = StyleSheet.create({
     marginTop: 9,
     marginBottom: 42,
   },
-
-  /* -------------------------
-     Messages
-  ------------------------- */
 
   errorMessage: {
     width: '100%',

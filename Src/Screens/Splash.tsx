@@ -1,18 +1,16 @@
-import React, {useEffect, useRef} from 'react';
-import {
-  Animated,
-  Easing,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
 
-import {useNavigation} from '@react-navigation/native';
-import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import type {RootStackParamList} from '../Navigation/AppNavigator';
+import type { RootStackParamList } from '../Navigation/AppNavigator';
 import { FontFamily } from '../GlobalFont/GlobalFont';
-import {getCurrentLoginResponse, initAuthSession} from '../Services/AuthSession';
+import Colors from '../Assets/Colors/Colors';
+import {
+  getCurrentLoginResponse,
+  initAuthSession,
+} from '../Services/AuthSession';
 
 type SplashNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -22,40 +20,83 @@ type SplashNavigationProp = NativeStackNavigationProp<
 const Splash = () => {
   const navigation = useNavigation<SplashNavigationProp>();
 
-  const logoScale = useRef(new Animated.Value(0.7)).current;
+  const logoScale = useRef(new Animated.Value(0)).current;
   const logoOpacity = useRef(new Animated.Value(0)).current;
   const textOpacity = useRef(new Animated.Value(0)).current;
-  const loadingOpacity = useRef(new Animated.Value(0)).current;
+  const dotOpacity = useRef(new Animated.Value(0)).current;
+  const dot1Opacity = useRef(new Animated.Value(0)).current;
+  const dot2Opacity = useRef(new Animated.Value(0)).current;
+  const dot3Opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    // Logo animation
     Animated.sequence([
+      Animated.timing(logoOpacity, {
+        toValue: 1,
+        duration: 600,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+
+      Animated.timing(logoScale, {
+        toValue: 1,
+        duration: 400,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+
+      // Text animation
       Animated.parallel([
-        Animated.timing(logoOpacity, {
+        Animated.timing(textOpacity, {
           toValue: 1,
-          duration: 900,
+          duration: 600,
+          easing: Easing.out(Easing.quad),
           useNativeDriver: true,
         }),
 
-        Animated.timing(logoScale, {
+        Animated.timing(dotOpacity, {
           toValue: 1,
-          duration: 900,
-          easing: Easing.out(Easing.exp),
+          duration: 300,
           useNativeDriver: true,
         }),
       ]),
-
-      Animated.timing(textOpacity, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-
-      Animated.timing(loadingOpacity, {
-        toValue: 1,
-        duration: 400,
-        useNativeDriver: true,
-      }),
     ]).start();
+
+    // Dots loader animation
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(dot1Opacity, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(dot1Opacity, {
+          toValue: 0.4,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(dot2Opacity, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(dot2Opacity, {
+          toValue: 0.4,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(dot3Opacity, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(dot3Opacity, {
+          toValue: 0.4,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]),
+    ).start();
 
     const timer = setTimeout(() => {
       (async () => {
@@ -63,52 +104,87 @@ const Splash = () => {
 
         const user = getCurrentLoginResponse()?.user;
 
-        if (user == null || user.employeeId == null || user.employeeId === undefined) {
+        if (
+          user == null ||
+          user.employeeId == null ||
+          user.employeeId === undefined
+        ) {
           navigation.replace('Login');
         } else {
           navigation.replace('Dashboard');
         }
       })();
-    }, 3000);
+    }, 3200);
 
     return () => clearTimeout(timer);
   }, [navigation]);
 
   return (
     <View style={styles.container}>
-      <Animated.Image
-        source={require('../Images/beas_logo.png')}
-        style={[
-          styles.logo,
-          {
-            opacity: logoOpacity,
-            transform: [{scale: logoScale}],
-          },
-        ]}
-        resizeMode="contain"
-      />
+      {/* Top Accent Bar */}
+      <View style={styles.topAccent} />
 
-      <Animated.View style={{opacity: textOpacity}}>
-        <Text style={styles.title}>
-          Leave Management System
-        </Text>
+      {/* Content Section */}
+      <View style={styles.content}>
+        {/* Logo */}
+        <Animated.Image
+          source={require('../Images/beas_logo.png')}
+          style={[
+            styles.logo,
+            {
+              opacity: logoOpacity,
+              transform: [{ scale: logoScale }],
+            },
+          ]}
+          resizeMode="contain"
+        />
 
-        <Text style={styles.subtitle}>
-          Streamlining Employee Leave
-        </Text>
+        {/* Text Section */}
+        <Animated.View style={[styles.textContainer, { opacity: textOpacity }]}>
+          <Text style={styles.title}>Leave Management</Text>
+          <Text style={styles.titleSecond}>System</Text>
+
+          <View style={styles.divider} />
+
+          <Text style={styles.subtitle}>
+            Streamline and manage employee leaves efficiently
+          </Text>
+        </Animated.View>
+      </View>
+
+      {/* Loading Indicator */}
+      <Animated.View style={[styles.loaderContainer, { opacity: dotOpacity }]}>
+        <Animated.View
+          style={[
+            styles.dot,
+            {
+              opacity: dot1Opacity,
+              backgroundColor: Colors.primary,
+            },
+          ]}
+        />
+        <Animated.View
+          style={[
+            styles.dot,
+            {
+              opacity: dot2Opacity,
+              backgroundColor: Colors.primary,
+            },
+          ]}
+        />
+        <Animated.View
+          style={[
+            styles.dot,
+            {
+              opacity: dot3Opacity,
+              backgroundColor: Colors.primary,
+            },
+          ]}
+        />
       </Animated.View>
 
-      <Animated.View
-        style={[
-          styles.loadingContainer,
-          {
-            opacity: loadingOpacity,
-          },
-        ]}>
-        <Text style={styles.loading}>
-          Loading...
-        </Text>
-      </Animated.View>
+      {/* Bottom Accent Bar */}
+      <View style={styles.bottomAccent} />
     </View>
   );
 };
@@ -118,41 +194,85 @@ export default Splash;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+
+  topAccent: {
+    width: '100%',
+    height: 4,
+    backgroundColor: Colors.primary,
+  },
+
+  content: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 30,
+    paddingHorizontal: 24,
   },
 
   logo: {
-    width: 180,
-    height: 180,
-    marginBottom: 40,
+    width: 140,
+    height: 140,
+    marginBottom: 48,
   },
 
-  title: {
-    fontSize: 30,
-    fontFamily: FontFamily.bold,
-    color: '#1A1A1A',
-    textAlign: 'center',
-  },
-
-  subtitle: {
-    marginTop: 10,
-    fontSize: 16,
-    color: '#777777',
-    textAlign: 'center',
-  },
-
-  loadingContainer: {
-    position: 'absolute',
-    bottom: 60,
+  textContainer: {
     alignItems: 'center',
   },
 
-  loading: {
-    fontSize: 16,
-    color: '#888888',
-    letterSpacing: 1,
+  title: {
+    fontSize: 28,
+    fontFamily: FontFamily.bold,
+    color: Colors.text,
+    textAlign: 'center',
+  },
+
+  titleSecond: {
+    fontSize: 28,
+    fontFamily: FontFamily.bold,
+    color: Colors.primary,
+    textAlign: 'center',
+    marginTop: 4,
+  },
+
+  divider: {
+    width: 40,
+    height: 2,
+    backgroundColor: Colors.primary,
+    marginVertical: 18,
+    borderRadius: 1,
+  },
+
+  subtitle: {
+    marginTop: 0,
+    fontSize: 14,
+    fontFamily: FontFamily.regular,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 20,
+    maxWidth: 280,
+  },
+
+  loaderContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 40,
+  },
+
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    opacity: 0.4,
+  },
+
+  bottomAccent: {
+    width: '100%',
+    height: 4,
+    backgroundColor: Colors.primary,
   },
 });
