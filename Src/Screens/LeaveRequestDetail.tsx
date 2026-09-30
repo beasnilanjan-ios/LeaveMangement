@@ -65,11 +65,31 @@ const LeaveRequestDetail = () => {
       navigation.goBack();
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : 'Unable to update leave status';
+        error instanceof Error
+          ? error.message
+          : 'Unable to update leave status';
       Alert.alert('Error', message);
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const formatDate = (date: string) => {
+    if (!date) {
+      return 'N/A';
+    }
+
+    const d = new Date(date);
+
+    if (isNaN(d.getTime())) {
+      return date;
+    }
+
+    const day = d.getDate().toString().padStart(2, '0');
+    const month = d.toLocaleDateString('en-US', { month: 'short' });
+    const year = d.getFullYear();
+
+    return `${day} ${month}, ${year}`;
   };
 
   return (
@@ -125,9 +145,15 @@ const LeaveRequestDetail = () => {
 
           <InfoRow label="Leave Type" value={leaveType} />
 
-          <InfoRow label="From Date" value={item.fromDate || 'N/A'} />
+          <InfoRow
+            label="From Date"
+            value={item.fromDate ? formatDate(item.fromDate) : 'N/A'}
+          />
 
-          <InfoRow label="To Date" value={item.toDate || 'N/A'} />
+          <InfoRow
+            label="To Date"
+            value={item.toDate ? formatDate(item.toDate) : 'N/A'}
+          />
 
           <InfoRow label="No. of Days" value={String(noOfDays)} />
 

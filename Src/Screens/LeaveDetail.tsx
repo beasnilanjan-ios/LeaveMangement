@@ -37,10 +37,28 @@ const formatDate = (date: string) => {
     return date;
   }
 
+  const day = d.getDate().toString().padStart(2, '0');
+  const month = d.toLocaleDateString('en-US', { month: 'short' });
+  const year = d.getFullYear();
+
+  return `${day} ${month}, ${year}`;
+};
+
+const formatMentionDate = (date: string) => {
+  if (!date) {
+    return '';
+  }
+
+  const d = new Date(date);
+
+  if (isNaN(d.getTime())) {
+    return date;
+  }
+
   return d.toLocaleDateString('en-US', {
-    weekday: 'long',
+    weekday: 'short',
     day: '2-digit',
-    month: 'long',
+    month: 'short',
     year: 'numeric',
   });
 };
@@ -272,10 +290,15 @@ const LeaveDetail = () => {
           </View>
 
           <Text style={styles.headerDate}>
-            {formatDate(leave.fromDate)} - {formatDate(leave.toDate)}
+            {formatMentionDate(leave.fromDate)} -{' '}
+            {formatMentionDate(leave.toDate)}
           </Text>
 
-          <Text style={styles.totalDay}>{leave.totalDays} Days</Text>
+          <Text style={styles.totalDay}>
+            {leave.totalDays > 1
+              ? `${leave.totalDays} Days`
+              : `${leave.totalDays} Day`}
+          </Text>
         </View>
 
         {/* =====================================================
@@ -305,7 +328,11 @@ const LeaveDetail = () => {
 
               <InfoRow
                 label="Total Days"
-                value={`${leave.totalDays} Days`}
+                value={
+                  leave.totalDays > 1
+                    ? `${leave.totalDays} Days`
+                    : `${leave.totalDays} Day`
+                }
                 valueColor={Colors.primary}
               />
             </View>

@@ -197,7 +197,8 @@ const ApplyLeave = () => {
      PARTIAL LEAVE
   ============================================================ */
 
-  const canUsePartialLeave = isSameDate && leaveBalance.balanceLeave > 0;
+  const canUsePartialLeave = isSameDate;
+  //&& leaveBalance.balanceLeave > 0;
 
   useEffect(() => {
     if (!canUsePartialLeave && duration !== 'FULL_DAY') {
@@ -748,11 +749,13 @@ const ApplyLeave = () => {
       return;
     }
 
-    if (selectedDate < fromDate) {
-      Alert.alert('Invalid Date', 'End date cannot be before start date.');
+    console.log('Selected To Date:', selectedDate);
+    console.log('Current From Date:', fromDate);
+    // if (toDate > fromDate) {
+    //   Alert.alert('Invalid Date', 'End date cannot be before start date.');
 
-      return;
-    }
+    //   return;
+    // }
 
     const overlappingLeave = getOverlappingLeave(fromDate, selectedDate);
 
@@ -889,13 +892,13 @@ const ApplyLeave = () => {
     // HALF DAY BALANCE VALIDATION
     // ============================================================
 
-    if (duration === 'HALF_DAY' && leaveBalance.balanceLeave <= 0) {
-      showAlert(
-        'Validation',
-        'You do not have sufficient leave balance for Half Day Leave.',
-      );
-      return;
-    }
+    // if (duration === 'HALF_DAY' && leaveBalance.balanceLeave <= 0) {
+    //   showAlert(
+    //     'Validation',
+    //     'You do not have sufficient leave balance for Half Day Leave.',
+    //   );
+    //   return;
+    // }
 
     // ============================================================
     // QUARTERLY BALANCE VALIDATION
