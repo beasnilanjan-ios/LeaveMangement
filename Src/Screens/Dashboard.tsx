@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   FlatList,
+  RefreshControl,
 } from 'react-native';
 
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -76,6 +77,8 @@ const Dashboard = () => {
 
   const [loading, setLoading] = useState(true);
 
+  const [refreshing, setRefreshing] = useState(false);
+
   const [errorMessage, setErrorMessage] = useState('');
 
   /* =======================================================
@@ -92,10 +95,6 @@ const Dashboard = () => {
           setErrorMessage('');
 
           const data = await getDashboard();
-
-          if (!isActive) {
-            return;
-          }
 
           setDashboardData(data);
 
@@ -287,6 +286,40 @@ const Dashboard = () => {
      RENDER
   ======================================================= */
 
+  const fetchDashboard = useCallback(async () => {
+    try {
+      setLoading(true);
+      setErrorMessage('');
+
+      const data = await getDashboard();
+
+      setDashboardData(data);
+
+      try {
+        const user = await fetchCurrentUser();
+        setCurrentUser(user);
+      } catch (error) {
+        console.warn('Unable to load profile:', error);
+      }
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : 'Unable to load dashboard',
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+
+    try {
+      await fetchDashboard();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [fetchDashboard]);
+
   return (
     <View style={styles.container}>
       {/* =================================================
@@ -421,6 +454,14 @@ const Dashboard = () => {
                 nestedScrollEnabled={true}
                 keyboardShouldPersistTaps="handled"
                 contentContainerStyle={styles.leaveListContent}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                    colors={[Colors.primary]}
+                    tintColor={Colors.primary}
+                  />
+                }
                 renderItem={({ item: [month, leaves] }) => (
                   <View style={styles.monthSection}>
                     {/* Month */}

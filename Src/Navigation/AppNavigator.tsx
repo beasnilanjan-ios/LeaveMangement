@@ -14,6 +14,7 @@ import LeaveRequestDetail from '../Screens/LeaveRequestDetail';
 import EmployeeList from '../Screens/EmployeeList';
 import EmployeeLeaveHistory from '../Screens/EmployeeLeaveHistory';
 import Profile from '../Screens/Profile';
+import Settings from '../Screens/Settings';
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -53,6 +54,7 @@ export type RootStackParamList = {
     employeeId: string;
   };
   Profile: undefined;
+  Settings: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -94,6 +96,8 @@ const AppNavigator = () => {
       />
 
       <Stack.Screen name="Profile" component={Profile} />
+
+      <Stack.Screen name="Settings" component={Settings} />
     </Stack.Navigator>
   );
 };

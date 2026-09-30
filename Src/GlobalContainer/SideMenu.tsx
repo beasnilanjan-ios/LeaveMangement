@@ -53,10 +53,10 @@ const menu = [
     title: 'Profile',
     icon: require('../Assets/Icons/user2.png'),
   },
-  {
-    title: 'Settings',
-    icon: require('../Assets/Icons/settings.png'),
-  },
+  // {
+  //   title: 'Settings',
+  //   icon: require('../Assets/Icons/settings.png'),
+  // },
   {
     title: 'Logout',
     icon: require('../Assets/Icons/logout.png'),
@@ -117,6 +117,10 @@ const SideMenu: React.FC<SideMenuProps> = ({
 
       case 'Profile':
         navigation.navigate('Profile');
+        break;
+
+      case 'Settings':
+        navigation.navigate('Settings');
         break;
 
       case 'Logout':

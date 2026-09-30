@@ -8,6 +8,7 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
+  RefreshControl,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -139,6 +140,8 @@ const EmployeeLeaveHistory = () => {
   const { employeeId } = route.params;
   const [selectedTab, setSelectedTab] = useState('All');
 
+  const [refreshing, setRefreshing] = useState(false);
+
   const navigation = useNavigation<EmployeeLeaveHistoryNavigationProp>();
 
   /* -----------------------------------------
@@ -248,6 +251,14 @@ const EmployeeLeaveHistory = () => {
     }
   };
 
+  const onRefresh = () => {
+    setRefreshing(true);
+
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 600);
+  };
+
   return (
     <View style={styles.container}>
       {/* Top Bar */}
@@ -353,6 +364,14 @@ const EmployeeLeaveHistory = () => {
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[Colors.primary]}
+            tintColor={Colors.primary}
+          />
+        }
       >
         {/* =====================================
                   LEAVE LIST

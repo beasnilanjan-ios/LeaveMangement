@@ -7,6 +7,7 @@ import {
   ScrollView,
   Image,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 
 import TopBar from '../GlobalContainer/TopBar';
@@ -60,6 +61,8 @@ const Holiday = () => {
 
   const [loading, setLoading] = useState(true);
 
+  const [refreshing, setRefreshing] = useState(false);
+
   const [errorMessage, setErrorMessage] = useState('');
 
   const currentYear = new Date().getFullYear();
@@ -85,6 +88,16 @@ const Holiday = () => {
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+
+    try {
+      await fetchHolidays(selectedYear);
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -280,6 +293,14 @@ const Holiday = () => {
               style={styles.listScrollView}
               contentContainerStyle={styles.listContentContainer}
               showsVerticalScrollIndicator={false}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={handleRefresh}
+                  colors={[Colors.primary]}
+                  tintColor={Colors.primary}
+                />
+              }
             >
               {Object.keys(groupedHolidays).map(month => (
                 <View key={month} style={styles.monthSection}>

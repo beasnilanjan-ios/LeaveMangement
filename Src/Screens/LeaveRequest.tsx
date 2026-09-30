@@ -7,6 +7,7 @@ import {
   TextInput,
   FlatList,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
@@ -33,6 +34,8 @@ const LeaveRequest = () => {
   const [search, setSearch] = useState('');
 
   const [loading, setLoading] = useState(true);
+
+  const [refreshing, setRefreshing] = useState(false);
 
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -65,6 +68,16 @@ const LeaveRequest = () => {
       setLoading(false);
     }
   }, []);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+
+    try {
+      await fetchLeaveRequests(search.trim());
+    } finally {
+      setRefreshing(false);
+    }
+  }, [fetchLeaveRequests, search]);
 
   /**
    * Reload API every time this screen comes into focus.
@@ -174,6 +187,14 @@ const LeaveRequest = () => {
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                colors={[Colors.primary]}
+                tintColor={Colors.primary}
+              />
+            }
             renderItem={({ item }) => {
               const detailItem = {
                 ...item,
