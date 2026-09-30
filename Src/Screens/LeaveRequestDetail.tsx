@@ -75,7 +75,7 @@ const LeaveRequestDetail = () => {
   return (
     <View style={styles.container}>
       <TopBar
-        title="Leave Detail"
+        title="Leave Request Detail"
         backVisible={true}
         onMenuPress={() => navigation.goBack()}
       />

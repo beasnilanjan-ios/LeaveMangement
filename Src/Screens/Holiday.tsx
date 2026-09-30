@@ -485,14 +485,14 @@ const styles = StyleSheet.create({
   },
 
   filterButton: {
-    minHeight: 40,
+    height: 40,
     paddingHorizontal: 16,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#9AA7B2',
     borderRadius: 22,
-    marginRight: 8,
+    marginRight: 4,
     backgroundColor: Colors.white,
   },
 

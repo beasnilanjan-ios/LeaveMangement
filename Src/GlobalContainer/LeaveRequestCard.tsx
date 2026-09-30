@@ -82,10 +82,19 @@ export default LeaveRequestCard;
 const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.white,
-    borderRadius: 18,
-    padding: 18,
-    marginBottom: 16,
-    elevation: 3,
+    borderRadius: 13,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
   },
 
   header: {

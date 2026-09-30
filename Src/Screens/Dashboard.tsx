@@ -1,9 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
   View,
@@ -14,33 +9,23 @@ import {
   FlatList,
 } from 'react-native';
 
-import {
-  useFocusEffect,
-  useNavigation,
-} from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
-import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../Navigation/AppNavigator';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../Navigation/AppNavigator';
 
 import TopBar from '../GlobalContainer/TopBar';
 import SideMenu from '../GlobalContainer/SideMenu';
 import BottomBar from '../GlobalContainer/BottomBar';
 
 import Colors from '../Assets/Colors/Colors';
-import {FontFamily} from '../GlobalFont/GlobalFont';
+import { FontFamily } from '../GlobalFont/GlobalFont';
 
-import {
-  DashboardDataModel,
-  getDashboard,
-} from '../Services/DashboardService';
+import { DashboardDataModel, getDashboard } from '../Services/DashboardService';
 
-import {
-  getCurrentUser as fetchCurrentUser,
-} from '../Services/AuthService';
+import { getCurrentUser as fetchCurrentUser } from '../Services/AuthService';
 
-import {
-  setCurrentUser,
-} from '../Services/AuthSession';
+import { setCurrentUser } from '../Services/AuthSession';
 
 /* =========================================================
    DATE HELPERS
@@ -79,22 +64,19 @@ type DashboardNavigationProp = NativeStackNavigationProp<
 ========================================================= */
 
 const Dashboard = () => {
-  const navigation =
-    useNavigation<DashboardNavigationProp>();
+  const navigation = useNavigation<DashboardNavigationProp>();
 
   const [menuVisible, setMenuVisible] = useState(false);
 
-  const [selectedTab, setSelectedTab] =
-    useState('All');
+  const [selectedTab, setSelectedTab] = useState('All');
 
-  const [dashboardData, setDashboardData] =
-    useState<DashboardDataModel | null>(null);
+  const [dashboardData, setDashboardData] = useState<DashboardDataModel | null>(
+    null,
+  );
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
 
-  const [errorMessage, setErrorMessage] =
-    useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   /* =======================================================
      FETCH DASHBOARD DATA
@@ -124,10 +106,7 @@ const Dashboard = () => {
               setCurrentUser(user);
             }
           } catch (error) {
-            console.warn(
-              'Unable to load profile:',
-              error,
-            );
+            console.warn('Unable to load profile:', error);
           }
         } catch (error) {
           if (!isActive) {
@@ -135,9 +114,7 @@ const Dashboard = () => {
           }
 
           setErrorMessage(
-            error instanceof Error
-              ? error.message
-              : 'Unable to load dashboard',
+            error instanceof Error ? error.message : 'Unable to load dashboard',
           );
         } finally {
           if (isActive) {
@@ -173,16 +150,11 @@ const Dashboard = () => {
 
           setCurrentUser(user);
         } catch (error) {
-          console.warn(
-            'Unable to load profile:',
-            error,
-          );
+          console.warn('Unable to load profile:', error);
         }
       } catch (error) {
         setErrorMessage(
-          error instanceof Error
-            ? error.message
-            : 'Unable to load dashboard',
+          error instanceof Error ? error.message : 'Unable to load dashboard',
         );
       } finally {
         setLoading(false);
@@ -231,6 +203,14 @@ const Dashboard = () => {
 
     return groups;
   }, [filteredLeaves]);
+
+  /* =======================================================
+     LEAVE MONTH DATA
+  ======================================================= */
+
+  const groupedLeaveEntries = useMemo(() => {
+    return Object.entries(groupedLeaves);
+  }, [groupedLeaves]);
 
   /* =======================================================
      STATUS COLORS
@@ -285,13 +265,23 @@ const Dashboard = () => {
   };
 
   /* =======================================================
-     LEAVE MONTH DATA
+     EMPTY MESSAGE
   ======================================================= */
 
-  const groupedLeaveEntries =
-    useMemo(() => {
-      return Object.entries(groupedLeaves);
-    }, [groupedLeaves]);
+  const getEmptyMessage = () => {
+    switch (selectedTab) {
+      case 'All':
+        return 'No leave requests found';
+      case 'Approve':
+        return 'No approved leave found';
+      case 'Pending':
+        return 'No pending leave found';
+      case 'Rejected':
+        return 'No rejected leave found';
+      default:
+        return 'No leave requests found';
+    }
+  };
 
   /* =======================================================
      RENDER
@@ -299,36 +289,24 @@ const Dashboard = () => {
 
   return (
     <View style={styles.container}>
-
       {/* =================================================
           TOP BAR - FIXED
       ================================================= */}
 
-      <TopBar
-        title="Home"
-        onMenuPress={() =>
-          setMenuVisible(prev => !prev)
-        }
-      />
+      <TopBar title="Home" onMenuPress={() => setMenuVisible(prev => !prev)} />
 
       {/* =================================================
           MAIN CONTENT
       ================================================= */}
 
       <View style={styles.mainContent}>
-
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator
-              size="large"
-              color={Colors.primary}
-            />
+            <ActivityIndicator size="large" color={Colors.primary} />
           </View>
         ) : errorMessage && !dashboardData ? (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>
-              {errorMessage}
-            </Text>
+            <Text style={styles.emptyText}>{errorMessage}</Text>
           </View>
         ) : (
           <>
@@ -337,13 +315,10 @@ const Dashboard = () => {
             ========================================== */}
 
             <View style={styles.summaryContainer}>
-
               {/* Total Leave */}
 
               <View style={styles.summaryCard}>
-                <Text style={styles.summaryTitle}>
-                  Total Leave
-                </Text>
+                <Text style={styles.summaryTitle}>Total Leave</Text>
 
                 <Text
                   style={[
@@ -351,20 +326,16 @@ const Dashboard = () => {
                     {
                       color: Colors.primary,
                     },
-                  ]}>
-                  {
-                    dashboardData?.leaveSummary
-                      .totalLeave
-                  }
+                  ]}
+                >
+                  {dashboardData?.leaveSummary.totalLeave}
                 </Text>
               </View>
 
               {/* Balance Leave */}
 
               <View style={styles.summaryCard}>
-                <Text style={styles.summaryTitle}>
-                  Balance Leave
-                </Text>
+                <Text style={styles.summaryTitle}>Balance Leave</Text>
 
                 <Text
                   style={[
@@ -372,20 +343,16 @@ const Dashboard = () => {
                     {
                       color: Colors.success,
                     },
-                  ]}>
-                  {
-                    dashboardData?.leaveSummary
-                      .balanceLeave
-                  }
+                  ]}
+                >
+                  {dashboardData?.leaveSummary.balanceLeave}
                 </Text>
               </View>
 
               {/* Early Leave */}
 
               <View style={styles.summaryCard}>
-                <Text style={styles.summaryTitle}>
-                  Early Leave
-                </Text>
+                <Text style={styles.summaryTitle}>Early Leave</Text>
 
                 <Text
                   style={[
@@ -393,14 +360,11 @@ const Dashboard = () => {
                     {
                       color: Colors.accent,
                     },
-                  ]}>
-                  {
-                    dashboardData?.leaveSummary
-                      .earlyLeave
-                  }
+                  ]}
+                >
+                  {dashboardData?.leaveSummary.earlyLeave}
                 </Text>
               </View>
-
             </View>
 
             {/* ==========================================
@@ -408,41 +372,24 @@ const Dashboard = () => {
             ========================================== */}
 
             <View style={styles.tabsContainer}>
-
-              {[
-                'All',
-                'Approve',
-                'Pending',
-              ].map(tab => {
-                const active =
-                  selectedTab === tab;
+              {['All', 'Approve', 'Pending', 'Rejected'].map(tab => {
+                const active = selectedTab === tab;
 
                 return (
                   <TouchableOpacity
                     key={tab}
-                    style={[
-                      styles.tab,
-                      active &&
-                        styles.activeTab,
-                    ]}
-                    onPress={() =>
-                      setSelectedTab(tab)
-                    }
-                    activeOpacity={0.8}>
-
+                    style={[styles.tab, active && styles.activeTab]}
+                    onPress={() => setSelectedTab(tab)}
+                    activeOpacity={0.8}
+                  >
                     <Text
-                      style={[
-                        styles.tabText,
-                        active &&
-                          styles.activeTabText,
-                      ]}>
+                      style={[styles.tabText, active && styles.activeTabText]}
+                    >
                       {tab}
                     </Text>
-
                   </TouchableOpacity>
                 );
               })}
-
             </View>
 
             {/* ==========================================
@@ -450,29 +397,15 @@ const Dashboard = () => {
             ========================================== */}
 
             <View style={styles.actionRow}>
-
-              <Text style={styles.sectionTitle}>
-                Leave Requests
-              </Text>
+              <Text style={styles.sectionTitle}>Leave Requests</Text>
 
               <TouchableOpacity
                 style={styles.applyButton}
                 activeOpacity={0.8}
-                onPress={() =>
-                  navigation.navigate(
-                    'ApplyLeave',
-                  )
-                }>
-
-                <Text
-                  style={
-                    styles.applyButtonText
-                  }>
-                  Apply Leave
-                </Text>
-
+                onPress={() => navigation.navigate('ApplyLeave')}
+              >
+                <Text style={styles.applyButtonText}>Apply Leave</Text>
               </TouchableOpacity>
-
             </View>
 
             {/* ==========================================
@@ -480,211 +413,119 @@ const Dashboard = () => {
             ========================================== */}
 
             <View style={styles.listWrapper}>
-
               <FlatList
                 data={groupedLeaveEntries}
-                keyExtractor={([month]) =>
-                  month
-                }
-                showsVerticalScrollIndicator={
-                  false
-                }
+                keyExtractor={([month]) => month}
+                showsVerticalScrollIndicator={false}
                 bounces={true}
                 nestedScrollEnabled={true}
                 keyboardShouldPersistTaps="handled"
-
-                contentContainerStyle={
-                  styles.leaveListContent
-                }
-
-                renderItem={({
-                  item: [month, leaves],
-                }) => (
-
-                  <View
-                    style={
-                      styles.monthSection
-                    }>
-
+                contentContainerStyle={styles.leaveListContent}
+                renderItem={({ item: [month, leaves] }) => (
+                  <View style={styles.monthSection}>
                     {/* Month */}
 
-                    <Text
-                      style={
-                        styles.monthTitle
-                      }>
-                      {month}
-                    </Text>
+                    <Text style={styles.monthTitle}>{month}</Text>
 
                     {/* Leaves */}
 
                     {leaves.map(item => {
+                      const statusStyle = getStatusStyle(item.status);
 
-                      const statusStyle =
-                        getStatusStyle(
-                          item.status,
-                        );
-
-                      const leaveColor =
-                        getLeaveColor(
-                          item.type,
-                        );
+                      const leaveColor = getLeaveColor(item.type);
 
                       return (
                         <TouchableOpacity
                           key={item.id}
-                          style={
-                            styles.leaveCard
-                          }
+                          style={styles.leaveCard}
                           activeOpacity={0.8}
                           onPress={() =>
-                            navigation.navigate(
-                              'LeaveDetail',
-                              {
-                                id: item.id,
-                                type: item.type,
-                                applicationType:
-                                  item.applicationType,
-                                fromDate:
-                                  item.fromDate,
-                                toDate:
-                                  item.toDate,
-                                status:
-                                  item.status,
-                                reason:
-                                  item.reason,
-                              },
-                            )
-                          }>
-
+                            navigation.navigate('LeaveDetail', {
+                              id: item.id,
+                              type: item.type,
+                              applicationType: item.applicationType,
+                              fromDate: item.fromDate,
+                              toDate: item.toDate,
+                              status: item.status,
+                              reason: item.reason,
+                            })
+                          }
+                        >
                           {/* =====================
                               CARD TOP
                           ====================== */}
 
-                          <View
-                            style={
-                              styles.cardTopRow
-                            }>
-
-                            <Text
-                              style={
-                                styles.applicationType
-                              }>
-                              {
-                                item.applicationType
-                              }
+                          <View style={styles.cardTopRow}>
+                            <Text style={styles.applicationType}>
+                              {item.applicationType}
                             </Text>
 
                             <View
                               style={[
                                 styles.statusBadge,
                                 {
-                                  backgroundColor:
-                                    statusStyle.backgroundColor,
+                                  backgroundColor: statusStyle.backgroundColor,
                                 },
-                              ]}>
-
+                              ]}
+                            >
                               <Text
                                 style={[
                                   styles.statusText,
                                   {
-                                    color:
-                                      statusStyle.color,
+                                    color: statusStyle.color,
                                   },
-                                ]}>
-                                {
-                                  item.status
-                                }
+                                ]}
+                              >
+                                {item.status}
                               </Text>
-
                             </View>
-
                           </View>
 
                           {/* =====================
                               DATE
                           ====================== */}
 
-                          <Text
-                            style={
-                              styles.dateText
-                            }>
+                          <Text style={styles.dateText}>
+                            {formatDate(item.fromDate)}
 
-                            {formatDate(
-                              item.fromDate,
-                            )}
-
-                            {item.fromDate !==
-                              item.toDate &&
-                              ` - ${formatDate(
-                                item.toDate,
-                              )}`}
-
+                            {item.fromDate !== item.toDate &&
+                              ` - ${formatDate(item.toDate)}`}
                           </Text>
 
                           {/* =====================
                               CARD BOTTOM
                           ====================== */}
 
-                          <View
-                            style={
-                              styles.cardBottomRow
-                            }>
-
+                          <View style={styles.cardBottomRow}>
                             <Text
                               style={[
                                 styles.leaveType,
                                 {
-                                  color:
-                                    leaveColor,
+                                  color: leaveColor,
                                 },
-                              ]}>
+                              ]}
+                            >
                               {item.type}
                             </Text>
 
-                            <View
-                              style={
-                                styles.arrowContainer
-                              }>
-
-                              <Text
-                                style={
-                                  styles.arrow
-                                }>
-                                ›
-                              </Text>
-
+                            <View style={styles.arrowContainer}>
+                              <Text style={styles.arrow}>›</Text>
                             </View>
-
                           </View>
-
                         </TouchableOpacity>
                       );
                     })}
-
                   </View>
                 )}
-
                 ListEmptyComponent={
-                  <View
-                    style={
-                      styles.emptyListContainer
-                    }>
-
-                    <Text
-                      style={
-                        styles.emptyText
-                      }>
-                      No leave requests found
-                    </Text>
-
+                  <View style={styles.emptyListContainer}>
+                    <Text style={styles.emptyText}>{getEmptyMessage()}</Text>
                   </View>
                 }
               />
-
             </View>
           </>
         )}
-
       </View>
 
       {/* =================================================
@@ -702,17 +543,11 @@ const Dashboard = () => {
       <SideMenu
         visible={menuVisible}
         selected="Home"
-        onClose={() =>
-          setMenuVisible(false)
-        }
+        onClose={() => setMenuVisible(false)}
         onItemPress={item => {
-          console.log(
-            'Selected:',
-            item,
-          );
+          console.log('Selected:', item);
         }}
       />
-
     </View>
   );
 };
@@ -724,7 +559,6 @@ export default Dashboard;
 ========================================================= */
 
 const styles = StyleSheet.create({
-
   /* =======================================================
      MAIN CONTAINER
   ======================================================= */
@@ -825,8 +659,7 @@ const styles = StyleSheet.create({
 
     marginTop: 18,
 
-    backgroundColor:
-      Colors.primaryLight,
+    backgroundColor: Colors.primaryLight,
 
     borderRadius: 14,
 
@@ -869,20 +702,13 @@ const styles = StyleSheet.create({
   },
 
   tabText: {
-    fontSize: 15,
-
-    fontFamily:
-      FontFamily.medium,
-
-    color:
-      Colors.textSecondary,
+    fontFamily: FontFamily.medium,
+    color: Colors.textSecondary,
   },
 
   activeTabText: {
     color: Colors.primary,
-
-    fontFamily:
-      FontFamily.semiBold,
+    fontFamily: FontFamily.bold,
   },
 
   /* =======================================================
@@ -894,8 +720,7 @@ const styles = StyleSheet.create({
 
     alignItems: 'center',
 
-    justifyContent:
-      'space-between',
+    justifyContent: 'space-between',
 
     marginTop: 22,
 
@@ -907,8 +732,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
 
-    fontFamily:
-      FontFamily.semiBold,
+    fontFamily: FontFamily.semiBold,
 
     color: Colors.text,
   },
@@ -922,25 +746,21 @@ const styles = StyleSheet.create({
 
     borderWidth: 1.5,
 
-    borderColor:
-      Colors.primary,
+    borderColor: Colors.primary,
 
     justifyContent: 'center',
 
     alignItems: 'center',
 
-    backgroundColor:
-      Colors.white,
+    backgroundColor: Colors.white,
   },
 
   applyButtonText: {
     fontSize: 14,
 
-    fontFamily:
-      FontFamily.semiBold,
+    fontFamily: FontFamily.semiBold,
 
-    color:
-      Colors.primary,
+    color: Colors.primary,
   },
 
   /* =======================================================
@@ -958,11 +778,9 @@ const styles = StyleSheet.create({
 
     fontSize: 15,
 
-    fontFamily:
-      FontFamily.medium,
+    fontFamily: FontFamily.medium,
 
-    color:
-      Colors.textSecondary,
+    color: Colors.textSecondary,
   },
 
   /* =======================================================
@@ -980,8 +798,7 @@ const styles = StyleSheet.create({
   ======================================================= */
 
   leaveCard: {
-    backgroundColor:
-      Colors.white,
+    backgroundColor: Colors.white,
 
     borderRadius: 13,
 
@@ -991,8 +808,7 @@ const styles = StyleSheet.create({
 
     borderWidth: 1,
 
-    borderColor:
-      Colors.border,
+    borderColor: Colors.border,
 
     shadowColor: '#000',
 
@@ -1013,8 +829,7 @@ const styles = StyleSheet.create({
 
     alignItems: 'center',
 
-    justifyContent:
-      'space-between',
+    justifyContent: 'space-between',
   },
 
   applicationType: {
@@ -1022,11 +837,9 @@ const styles = StyleSheet.create({
 
     fontSize: 14,
 
-    fontFamily:
-      FontFamily.medium,
+    fontFamily: FontFamily.medium,
 
-    color:
-      Colors.textSecondary,
+    color: Colors.textSecondary,
 
     marginRight: 10,
   },
@@ -1042,8 +855,7 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 12,
 
-    fontFamily:
-      FontFamily.semiBold,
+    fontFamily: FontFamily.semiBold,
   },
 
   dateText: {
@@ -1051,8 +863,7 @@ const styles = StyleSheet.create({
 
     fontSize: 21,
 
-    fontFamily:
-      FontFamily.bold,
+    fontFamily: FontFamily.bold,
 
     color: Colors.text,
   },
@@ -1062,8 +873,7 @@ const styles = StyleSheet.create({
 
     alignItems: 'center',
 
-    justifyContent:
-      'space-between',
+    justifyContent: 'space-between',
 
     marginTop: 8,
   },
@@ -1071,8 +881,7 @@ const styles = StyleSheet.create({
   leaveType: {
     fontSize: 14,
 
-    fontFamily:
-      FontFamily.medium,
+    fontFamily: FontFamily.medium,
   },
 
   arrowContainer: {
@@ -1082,8 +891,7 @@ const styles = StyleSheet.create({
 
     borderRadius: 10,
 
-    backgroundColor:
-      Colors.background,
+    backgroundColor: Colors.background,
 
     justifyContent: 'center',
 
@@ -1093,8 +901,7 @@ const styles = StyleSheet.create({
   arrow: {
     fontSize: 28,
 
-    color:
-      Colors.textSecondary,
+    color: Colors.textSecondary,
 
     lineHeight: 30,
   },
@@ -1136,11 +943,9 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 15,
 
-    fontFamily:
-      FontFamily.medium,
+    fontFamily: FontFamily.medium,
 
-    color:
-      Colors.textSecondary,
+    color: Colors.textSecondary,
 
     textAlign: 'center',
   },

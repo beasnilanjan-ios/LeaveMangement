@@ -317,7 +317,7 @@ const LeaveDetail = () => {
         ===================================================== */}
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Reason</Text>
+          <Text style={styles.sectionTitle}>Reason For Take Leave</Text>
 
           <View style={styles.infoCard}>
             <Text style={styles.reasonText}>

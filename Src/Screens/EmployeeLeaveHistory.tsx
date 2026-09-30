@@ -122,6 +122,15 @@ const dashboardData = {
       status: 'Pending',
       reason: 'Personal reason',
     },
+    {
+      id: 'LR007',
+      type: 'Early Leave',
+      applicationType: 'Early Leave Application',
+      fromDate: '2026-08-18',
+      toDate: '2026-08-18',
+      status: 'Rejected',
+      reason: 'Personal reason',
+    },
   ],
 };
 
@@ -201,6 +210,25 @@ const EmployeeLeaveHistory = () => {
   };
 
   /* -----------------------------------------
+     Get Empty Message
+  ----------------------------------------- */
+
+  const getEmptyMessage = () => {
+    switch (selectedTab) {
+      case 'All':
+        return 'No leave found';
+      case 'Approve':
+        return 'No approved leave found';
+      case 'Pending':
+        return 'No pending leave found';
+      case 'Rejected':
+        return 'No rejected leave found';
+      default:
+        return 'No leave found';
+    }
+  };
+
+  /* -----------------------------------------
      Leave Type Colors
   ----------------------------------------- */
 
@@ -229,12 +257,8 @@ const EmployeeLeaveHistory = () => {
         onMenuPress={() => navigation.goBack()}
       />
 
-      {/* Content */}
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.contentContainer}
-      >
-        {/* Your Leave Detail UI */}
+      {/* Fixed Header */}
+      <View style={styles.fixedHeader}>
         {/* Employee Card */}
         <View style={styles.employeeCard}>
           <Text style={styles.employeeName}>{dashboardData.employee.name}</Text>
@@ -306,7 +330,7 @@ const EmployeeLeaveHistory = () => {
               ===================================== */}
 
         <View style={styles.tabsContainer}>
-          {['All', 'Approve', 'Pending'].map(tab => {
+          {['All', 'Approve', 'Pending', 'Rejected'].map(tab => {
             const active = selectedTab === tab;
 
             return (
@@ -323,7 +347,13 @@ const EmployeeLeaveHistory = () => {
             );
           })}
         </View>
+      </View>
 
+      {/* Scrollable Content */}
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.contentContainer}
+      >
         {/* =====================================
                   LEAVE LIST
               ===================================== */}
@@ -417,7 +447,7 @@ const EmployeeLeaveHistory = () => {
 
         {filteredLeaves.length === 0 && (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No leave found</Text>
+            <Text style={styles.emptyText}>{getEmptyMessage()}</Text>
           </View>
         )}
       </ScrollView>
@@ -433,13 +463,20 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
 
+  fixedHeader: {
+    paddingHorizontal: 16,
+    paddingTop: 18,
+    paddingBottom: 12,
+    backgroundColor: Colors.background,
+  },
+
   scrollView: {
     flex: 1,
   },
 
   contentContainer: {
     paddingHorizontal: 16,
-    paddingTop: 18,
+    paddingTop: 0,
     paddingBottom: 25,
   },
 
@@ -468,7 +505,7 @@ const styles = StyleSheet.create({
     padding: 18,
     borderWidth: 1,
     borderColor: Colors.border,
-    marginBottom: 18,
+    marginBottom: 10,
   },
 
   employeeName: {
@@ -492,21 +529,20 @@ const styles = StyleSheet.create({
   },
 
   statusBadge: {
-    alignSelf: 'flex-start',
-    marginTop: 14,
-    paddingHorizontal: 14,
+    paddingHorizontal: 11,
     paddingVertical: 6,
-    borderRadius: 20,
+    borderRadius: 7,
   },
 
   statusText: {
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: FontFamily.semiBold,
   },
 
   summaryContainer: {
     flexDirection: 'row',
     gap: 10,
+    marginBottom: 10,
   },
 
   summaryCard: {
@@ -567,7 +603,7 @@ const styles = StyleSheet.create({
   tabsContainer: {
     height: 55,
 
-    marginTop: 18,
+    marginTop: 0,
 
     backgroundColor: Colors.primaryLight,
 
@@ -610,17 +646,13 @@ const styles = StyleSheet.create({
   },
 
   tabText: {
-    fontSize: 15,
-
     fontFamily: FontFamily.medium,
-
     color: Colors.textSecondary,
   },
 
   activeTabText: {
     color: Colors.primary,
-
-    fontFamily: FontFamily.semiBold,
+    fontFamily: FontFamily.bold,
   },
 
   /* =====================================
@@ -676,8 +708,6 @@ const styles = StyleSheet.create({
   ===================================== */
 
   monthTitle: {
-    marginTop: 22,
-
     marginBottom: 10,
 
     fontSize: 15,

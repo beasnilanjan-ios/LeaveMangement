@@ -6,14 +6,15 @@ import {
   TouchableOpacity,
   Pressable,
   Image,
+  Alert,
 } from 'react-native';
 
 import Colors from '../Assets/Colors/Colors';
-import {FontFamily} from '../GlobalFont/GlobalFont';
-import {useNavigation} from '@react-navigation/native';
-import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import { FontFamily } from '../GlobalFont/GlobalFont';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import type {RootStackParamList} from '../Navigation/AppNavigator';
+import type { RootStackParamList } from '../Navigation/AppNavigator';
 import {
   getCurrentUser,
   clearCurrentUser,
@@ -68,8 +69,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
   selected = 'Home',
   onItemPress,
 }) => {
-  type NavigationProp =
-    NativeStackNavigationProp<RootStackParamList>;
+  type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
   const navigation = useNavigation<NavigationProp>();
 
@@ -120,9 +120,22 @@ const SideMenu: React.FC<SideMenuProps> = ({
         break;
 
       case 'Logout':
-        clearCurrentUser();
-        clearCurrentLoginResponse();
-        navigation.replace('Login');
+        Alert.alert('Logout', 'Do you want to logout from the app?', [
+          {
+            text: 'No',
+            onPress: () => {},
+            style: 'cancel',
+          },
+          {
+            text: 'Yes',
+            onPress: () => {
+              clearCurrentUser();
+              clearCurrentLoginResponse();
+              navigation.replace('Login');
+            },
+            style: 'default',
+          },
+        ]);
         break;
 
       default:
@@ -132,23 +145,18 @@ const SideMenu: React.FC<SideMenuProps> = ({
 
   return (
     <View style={styles.overlay}>
-
-      <Pressable
-        style={styles.background}
-        onPress={onClose}
-      />
+      <Pressable style={styles.background} onPress={onClose} />
 
       <View style={styles.drawer}>
-
         <TouchableOpacity
           style={styles.closeButton}
           onPress={onClose}
-          activeOpacity={0.7}>
+          activeOpacity={0.7}
+        >
           <Text style={styles.closeText}>×</Text>
         </TouchableOpacity>
 
         <View style={styles.profileSection}>
-
           <View style={styles.avatarContainer}>
             <Image
               source={require('../Assets/Icons/user2.png')}
@@ -157,16 +165,11 @@ const SideMenu: React.FC<SideMenuProps> = ({
             />
           </View>
 
-          <Text style={styles.name}>
-            {user?.name ?? 'Employee'}
-          </Text>
+          <Text style={styles.name}>{user?.name ?? 'Employee'}</Text>
 
           <Text style={styles.employeeId}>
-            {user
-              ? `Employee ID : ${user.employeeId}`
-              : 'Employee ID : -'}
+            {user ? `Employee ID : ${user.employeeId}` : 'Employee ID : -'}
           </Text>
-
         </View>
 
         <View style={styles.divider} />
@@ -178,39 +181,27 @@ const SideMenu: React.FC<SideMenuProps> = ({
             return (
               <TouchableOpacity
                 key={item.title}
-                style={[
-                  styles.row,
-                  isSelected && styles.selectedRow,
-                ]}
+                style={[styles.row, isSelected && styles.selectedRow]}
                 activeOpacity={0.7}
-                onPress={() => handleItemPress(item.title)}>
-
-                {isSelected && (
-                  <View style={styles.selectedIndicator} />
-                )}
+                onPress={() => handleItemPress(item.title)}
+              >
+                {isSelected && <View style={styles.selectedIndicator} />}
 
                 <Image
                   source={item.icon}
-                  style={[
-                    styles.icon,
-                    isSelected && styles.selectedIcon,
-                  ]}
+                  style={[styles.icon, isSelected && styles.selectedIcon]}
                   resizeMode="contain"
                 />
 
                 <Text
-                  style={[
-                    styles.title,
-                    isSelected && styles.selectedTitle,
-                  ]}>
+                  style={[styles.title, isSelected && styles.selectedTitle]}
+                >
                   {item.title}
                 </Text>
-
               </TouchableOpacity>
             );
           })}
         </View>
-
       </View>
     </View>
   );
